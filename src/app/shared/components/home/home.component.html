@@ -1,0 +1,21 @@
+<div class="p-8 space-y-8">
+  <!-- 🟩 Dashboard Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for(card of salesCards; track $index) {
+      <spk-sales-cards [card]="card"></spk-sales-cards>
+    }
+  </div>
+
+<div class="p-8">
+  <h2 class="text-2xl font-semibold mb-4">Reusable Table Example</h2>
+
+  <spk-reusable-tables
+    [columns]="columns"
+    [data]="data"
+    [showCheckbox]="true"
+    tableClass="table table-striped table-bordered"
+    tableHead="bg-gray-200"
+    (toggleSelectAll)="onSelectAll($event)"
+    >
+  </spk-reusable-tables>
+</div>
