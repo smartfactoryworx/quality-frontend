@@ -7,13 +7,7 @@ export const content: Routes = [
   {
     path: '',
     children: [
-      {
-        path: 'home',
-        loadComponent: () =>
-          import('../components/home/home.component').then(
-            (m) => m.HomeComponent
-          ),
-      },
+      
       {
         path: '',
         redirectTo: 'home',

@@ -1,0 +1,42 @@
+
+<form [formGroup]="roleForm" (ngSubmit)="submitForm()" class="role-form">
+  <!-- your form fields go here -->
+  <div class="flex justify-between items-center mb-4">
+<h4>Existing Roles</h4>
+
+<button
+  class="text-white text-sm btn btn-secondary ti-btn ti-btn-secondary mb-4"
+  (click)="openAddRolePopup()" >
+  <mat-icon class="!align-middle mr-1">person_add</mat-icon>
+  Add Role
+</button>
+
+</div>
+</form>
+
+<!-- Instead of the old <ul> list -->
+<div class="flex flex-wrap gap-8" >
+  <div *ngFor="let role of existingRoles" class="w-full md:w-[48%] lg:w-[48%] xl:w-[48%]">
+    <mat-card class="p-4 shadow-lg rounded-xl bg-white">
+      <div class="flex items-center gap-8 justify-start">
+      <mat-card-title class="text-xl font-semibold">{{ role.title }} ({{ role.code }})</mat-card-title>
+  <button class="ml-16 text-white text-sm btn btn-secondary ti-btn ti-btn-secondary mb-2" 
+        (click)="openEditRolePopup(role)">
+          <mat-icon class="!align-middle mr-1" fontIcon="edit"></mat-icon>
+    Edit
+  </button>
+      </div>
+      <mat-card-subtitle class="text-gray-600 mb-2">Name: {{ role.name }}</mat-card-subtitle>
+      <p class="text-sm mb-4"><strong>Root URL:</strong> {{ role.rootUrl }}</p>
+
+      <!-- Accordion -->
+      <app-showcode-card [title]="'Privileges & Settings'" [boxClass]="'custom-box'">
+        <div class="accordion customized-accordion accordions-items-seperate" id="customizedAccordion">
+          <spk-accordions [accordions]="getAccordionsForRole(role)"></spk-accordions>
+        </div>
+      </app-showcode-card>
+    </mat-card>
+  </div>
+</div>
+
+

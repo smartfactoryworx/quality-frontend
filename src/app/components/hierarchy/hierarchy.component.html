@@ -1,0 +1,41 @@
+<!-- Breadcrumb -->
+<!-- <div
+  class="w-full bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100 dark:from-gray-800 dark:to-gray-700
+         py-3 px-6 rounded-xl shadow-sm border border-blue-100 dark:border-gray-600 mb-6"
+>
+  <spk-breadcrumb
+    [items]="breadcrumbs"
+    (click)="onBreadcrumbClick($event)"
+    class="text-base font-medium text-blue-700 hover:text-blue-900 dark:text-blue-400"
+  ></spk-breadcrumb>
+</div> -->
+
+<!-- Ribbons -->
+<div *ngIf="ribbonCards.length > 0; else noData" class="grid grid-cols-12 gap-3">
+  <div class="col-span-12">
+    <div class="grid sm:grid-cols-3 gap-6">
+      <div
+        *ngFor="let card of ribbonCards"
+        (click)="onRibbonClick(card.name, card.next)"
+      >
+        <spk-ribbons
+          [mainClass]="
+            'box flex items-center justify-center h-22 w-full sm:w-80 mx-auto mb-4 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-gray-800 dark:to-gray-700 text-2xl font-bold text-gray-900 dark:text-white shadow-md hover:shadow-lg transition-transform hover:scale-105 cursor-pointer'
+          "
+          [bodyClass]="'!p-6'"
+          [ribbonClass]="'ribbon-3 top-left ribbon-primary'"
+          [topTitle]="card.name.toUpperCase()"
+        >
+          <span><i class="{{ card.ribbonIcon }}"></i></span>
+        </spk-ribbons>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty / Loading -->
+<ng-template #noData>
+  <div class="text-center text-gray-500 mt-10 text-lg">
+    No hierarchy data available.
+  </div>
+</ng-template>

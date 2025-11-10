@@ -12,6 +12,8 @@ export const environment = {
     appId: '********************************',
     measurementId: '********************************',
   },
+    uaapiBaseUrl: 'https://qualitydevua.smartfactoryworx.com'
+
 };
 
 /*

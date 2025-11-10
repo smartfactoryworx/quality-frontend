@@ -1,0 +1,65 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-4 space-y-4">
+
+   <h2 class="text-xl font-semibold text-gray-800 mb-4">
+    Add {{ selectedNodeType | titlecase }}
+  </h2>
+  <!-- Company Dropdown -->
+  <div *ngIf="selectedNodeType === 'country'">
+    <label>Company</label>
+    <select formControlName="company_id" class="form-select w-full p-2 border rounded">
+      <option *ngFor="let c of companies" [value]="c._id">{{ c.name }}</option>
+    </select>
+  </div>
+
+  <!-- Country Dropdown -->
+  <div *ngIf="selectedNodeType === 'state'">
+    <label>Country</label>
+    <select formControlName="country_id" class="form-select w-full p-2 border rounded">
+      <option *ngFor="let c of countries" [value]="c._id">{{ c.name }}</option>
+    </select>
+  </div>
+
+  <!-- State Dropdown -->
+  <div *ngIf="selectedNodeType === 'location'">
+    <label>State</label>
+    <select formControlName="state_id" class="form-select w-full p-2 border rounded">
+      <option *ngFor="let s of states" [value]="s._id">{{ s.name }}</option>
+    </select>
+  </div>
+
+  <!-- Location Dropdown -->
+  <div *ngIf="selectedNodeType === 'plant'">
+    <label>Location</label>
+    <select formControlName="location_id" class="form-select w-full p-2 border rounded">
+      <option *ngFor="let l of locations" [value]="l._id">{{ l.name }}</option>
+    </select>
+  </div>
+
+  <!-- Plant Dropdown for Line -->
+<div *ngIf="selectedNodeType === 'line'">
+  <label>Plant</label>
+  <select formControlName="plant_id" class="form-select w-full p-2 border rounded">
+    <option *ngFor="let p of plants" [value]="p._id">{{ p.name }}</option>
+  </select>
+</div>
+
+
+  <!-- Common Name Input -->
+  <div *ngIf="form.contains('name')">
+    <label>Name</label>
+    <input formControlName="name" placeholder="Enter name" class="form-input w-full p-2 border rounded" />
+  </div>
+
+  <!-- Common Code Input -->
+  <div *ngIf="form.contains('code')">
+    <label>Code</label>
+    <input formControlName="code" placeholder="Enter code" class="form-input w-full p-2 border rounded" />
+  </div>
+
+  <!-- Submit Button -->
+  <div class="pt-4">
+    <button type="submit" [disabled]="form.invalid"
+      class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Submit</button>
+  </div>
+
+</form>

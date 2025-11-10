@@ -1,9 +1,15 @@
-import { Component, ElementRef, HostListener, Renderer2 } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, Renderer2 } from '@angular/core';
 import { Menu, NavService } from '../../services/nav.service';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AppStateService } from '../../services/app-state.service';
 import { SwitcherComponent } from '../switcher/switcher.component';
 import { filter } from 'rxjs';
+import { SpkBreadcrumbComponent } from '../../../../@spk/reusable-ui-elements/spk-breadcrumb/spk-breadcrumb.component';
+import { SharedModule } from '../../shared.module';
+import { CommonModule } from '@angular/common';
+import { OverlayscrollbarsModule } from 'overlayscrollbars-ngx';
+import { BreadcrumbService } from '../../services/breadcrumb.service';
+
 interface Item {
   id: number;
   name: string;
@@ -13,7 +19,9 @@ interface Item {
 }
 @Component({
   selector: 'app-header',
-  standalone:false,
+  standalone:true,
+  imports: [SpkBreadcrumbComponent, CommonModule, OverlayscrollbarsModule,
+    RouterModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -28,11 +36,13 @@ export class HeaderComponent {
 
   selectedItem: string  | null ='selectedItem'
   isOpen: boolean = false;
+  breadcrumbs: any[] = [];
   constructor(
     private appStateService: AppStateService,
     public navServices: NavService,
     private elementRef: ElementRef,
     public renderer: Renderer2,
+    private breadcrumbService: BreadcrumbService,
     private router: Router, private activatedRoute: ActivatedRoute
   ) {this.localStorageBackUp()}
 
@@ -87,6 +97,18 @@ export class HeaderComponent {
   openSearch(search: any) {
     // this.modalService.open(search);
   }
+
+  onBreadcrumbClick(event: any) {
+  const target = event.target as HTMLElement;
+  const clickedLabel = target?.textContent?.trim();
+  const clickedItem = this.breadcrumbs.find((b) => b.label === clickedLabel);
+
+  // Navigate if the breadcrumb item has a path and is not the last one
+  if (clickedItem && clickedItem.path && !clickedItem.isLast) {
+    this.router.navigateByUrl(clickedItem.path);
+  }
+}
+
   toggleSidebar() {
     let html = this.elementRef.nativeElement.ownerDocument.documentElement;
     if (html?.getAttribute('data-toggled') == 'true') {
@@ -248,6 +270,10 @@ export class HeaderComponent {
   public SearchResultEmpty: boolean = false;
 
   ngOnInit(): void {
+
+  this.breadcrumbService.breadcrumbs$.subscribe((crumbs) => {
+    this.breadcrumbs = crumbs;
+  });
     const storedSelectedItem = localStorage.getItem('selectedItem');
     // this.updateSelectedItem();
   // If there's no selected item stored, set a default one
