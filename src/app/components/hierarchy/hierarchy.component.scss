@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.grid {
+  margin-top: 1rem;
+}
+
+spk-ribbons {
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+spk-ribbons:hover {
+  transform: scale(1.05);
+}

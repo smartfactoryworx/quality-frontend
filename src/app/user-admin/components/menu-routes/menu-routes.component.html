@@ -1,0 +1,146 @@
+
+<div class="grid grid-cols-12 gap-x-6">
+  <!-- put this near the top of your template -->
+
+
+  <div class="xl:col-span-12 col-span-12">
+    <div class="box">
+      <div class="box-header flex items-center justify-between flex-wrap gap-4">
+        <div class="box-title">
+          Menu Routes <span class="badge bg-primary rounded ms-2 text-xs align-middle">{{ menuRoutes.length }}</span>
+        </div>
+        
+<!-- Add New Route Button -->
+<div class="mb-3 ">
+  <button (click)="openAddRoutePopup()" class="ti-btn ti-btn-primary ti-btn-sm ">
+    Add New Route
+  </button>
+
+</div>
+      </div>
+
+
+
+<!-- Add/Edit Route Modal -->
+<div
+  *ngIf="isAddEditPopupOpen"
+  class="modal-backdrop"
+  style="
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+  "
+>
+  <div
+    class="modal-content p-4 bg-white rounded shadow ti-modal-header"
+    style="width: 320px; max-width: 90%;"
+  >
+    <h3 class="mb-4 modal-title text-[1rem] font-semiboldmodal-title">
+      {{ selectedRoute._id ? 'Edit Route' : 'Add New Route' }}
+    </h3>
+    <form (ngSubmit)="onSaveRoute()">
+      <input
+        type="text"
+        [(ngModel)]="selectedRoute.path"
+        name="path"
+        placeholder="Path"
+        required
+        class="form-control mb-3"
+      />
+      <input
+        type="text"
+        [(ngModel)]="selectedRoute.label"
+        name="label"
+        placeholder="Label"
+        required
+        class="form-control mb-3"
+      />
+      <input
+        type="text"
+        [(ngModel)]="selectedRoute.module"
+        name="module"
+        placeholder="Module"
+        class="form-control mb-3"
+      />
+      
+            <div class="ti-modal-footer">
+        <button type="submit" class="ti-btn ti-btn-primary" (click)="onSaveRoute()">
+          Save
+        </button>
+       
+
+                 <button
+          type="button"
+          class="btn btn-secondary ti-btn ti-btn-soft-secondary"
+          (click)="closePopup()"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+      <div class="box-body p-0">
+        <div class="table-responsive">
+          <table class="ti-custom-table ti-custom-table-head ti-custom-table-hover w-full text-left">
+            <thead>
+              <tr>
+                <th>
+  <input
+    type="checkbox"
+    #selectAllCheckbox
+    (change)="toggleSelectAll(selectAllCheckbox.checked)"
+    [checked]="allRoutesChecked"
+  />
+</th>
+
+                <th *ngFor="let col of menuRouteColumns">{{ col.header }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let route of menuRoutes" class="border-b !border-defaultborder dark:!border-defaultborder/10">
+                <td class="text-center">
+                  <input type="checkbox" [(ngModel)]="route.checked" />
+                </td>
+                <td>{{ route.path }}</td>
+                <td>{{ route.label }}</td>
+                <td>{{ route.module }}</td>
+                <td>{{ route.icon }}</td>
+                <td>
+                  <div class="btn-list">
+                    <button class="ti-btn ti-btn-sm ti-btn-soft-info ti-btn-icon" (click)="onEditRoute(route)">
+                      <i class="ri-pencil-line"></i>
+                    </button>
+                    <button class="ti-btn ti-btn-sm ti-btn-soft-primary2 ti-btn-icon" (click)="onDeleteRoute(route._id)">
+                      <i class="ri-delete-bin-line"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="box-footer border-t-0 flex items-center flex-wrap">
+        <div>Showing {{ menuRoutes.length }} Entries</div>
+        <div class="ms-auto">
+          <nav aria-label="Page navigation" class="pagination-style-4">
+            <ul class="ti-pagination mb-0 flex-wrap">
+              <li class="page-item disabled"><a class="page-link" href="javascript:void(0);">Prev</a></li>
+              <li class="page-item"><a class="page-link active" href="javascript:void(0);">1</a></li>
+              <li class="page-item"><a class="page-link" href="javascript:void(0);">2</a></li>
+              <li class="page-item"><a class="page-link !text-primary" href="javascript:void(0);">Next</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

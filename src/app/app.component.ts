@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { NavigationEnd, Router, Event,RouterOutlet } from '@angular/router';
 import { AppStateService } from './shared/services/app-state.service';
+import { BreadcrumbService } from './shared/services/breadcrumb.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +13,7 @@ import { AppStateService } from './shared/services/app-state.service';
 })
 export class AppComponent {
   title = 'Xintra';
-  constructor(private appState : AppStateService,private router:Router){
+  constructor(private appState : AppStateService,private router:Router,private breadcrumbService: BreadcrumbService){
     this.appState.updateState();
   }
 
@@ -24,5 +26,6 @@ export class AppComponent {
         }, 100);
       }
     });
+  this.breadcrumbService.ensureLoaded().pipe(take(1)).subscribe();
   }
 }

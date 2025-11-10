@@ -1,0 +1,75 @@
+<div >
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-purple-700">Users</h2>
+    <button (click)="openCreateUserDialog()" class="text-white text-sm btn btn-secondary ti-btn ti-btn-secondary">Create New User</button>
+  </div>
+
+  <!-- Card view layout -->
+  <div class="flex flex-wrap gap-4">
+    <div *ngFor="let user of users" class="w-full md:w-[48%] lg:w-[32%] xl:w-[30%] ">
+      <mat-card class="p-4 shadow-md bg-white rounded-lg">
+<div class="flex items-center gap-4 justify-end">
+  <!-- Edit Button -->
+  <button
+    mat-button
+    color="primary" class="btn btn-secondary ti-btn ti-btn-soft-secondary"
+    (click)="openEditUser(user)">
+    Edit
+  </button>
+
+  <!-- Material Toggle -->
+  <mat-slide-toggle
+    [checked]="user.isActive"
+    color="primary"
+    (change)="confirmToggle(user)">
+    {{ user.isActive ? 'Active' : 'Inactive' }}
+  </mat-slide-toggle>
+</div>
+<div *ngIf="confirmingUserId" class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+    <h3 class="text-lg font-semibold mb-4">Confirm Action</h3>
+    <p>Are you sure you want to continue?</p>
+    <div class="mt-6 flex justify-end gap-2">
+      <button class="btn btn-secondary" (click)="confirmingUserId = null">Cancel</button>
+      <button class="btn btn-primary" (click)="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+
+        <!-- User name + avatar -->
+        <mat-card-title class="flex  justify-between text-lg font-bold text-purple-700">
+             <span class="avatar order-3 me-2 avatar-rounded w-10 h-10 mr-4 overflow-hidden rounded-full bg-gray-200 flex">
+  <img 
+    src="assets/images/faces/profile_1.png" 
+    alt="User Avatar" 
+    class="w-full h-full object-cover"
+  />
+</span>
+
+  <span class="order-1 ">{{ user.fullName || user.name }}</span> 
+  
+
+</mat-card-title>
+
+
+        <mat-card-subtitle class="text-sm text-gray-600 mb-2">
+          {{ user.email }}
+        </mat-card-subtitle>
+
+        <p class="text-sm"><strong>Phone:</strong> {{ user.phone }}</p>
+        <p class="text-sm"><strong>Emp Code:</strong> {{ user.empCode }}</p>
+        <p class="text-sm"><strong>Status:</strong> {{ user.isActive ? 'Active' : 'Inactive' }}</p>
+
+        <!-- Accordion -->
+        <app-showcode-card [title]="'Details'" [boxClass]="'custom-box mt-4'">
+          <div class="accordion customized-accordion accordions-items-seperate" id="customizedAccordion">
+            <spk-accordions [accordions]="getAccordionsForUser(user)"></spk-accordions>
+          </div>
+        </app-showcode-card>
+
+        
+      </mat-card>
+    </div>
+  </div>
+</div>
