@@ -1,0 +1,15 @@
+.app-header {
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-header spk-breadcrumb {
+  width: 100%;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}

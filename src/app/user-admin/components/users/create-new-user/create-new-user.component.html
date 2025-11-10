@@ -1,0 +1,183 @@
+<div class="box mt-4 ml-4 text-purple-700">
+        <form [formGroup]="userForm" (ngSubmit)="submitForm()" class="space-y-4 p-6">
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+    <div class="text-xl font-bold text-purple-700">Create New User</div>
+    <div>
+      <mat-slide-toggle formControlName="isOTPallowed" color="primary">OTP Allowed</mat-slide-toggle>
+    </div>
+  </div>
+
+  <div class="box-body">
+    <!-- Custom Navtabs -->
+   <div class="border-b border-gray-200">
+  <nav class="flex space-x-6" role="tablist">
+    <button
+      type="button"
+      (click)="selectedTab = 0"
+      class="pb-2 px-1 text-sm font-medium transition"
+      [class.text-purple-600]="selectedTab === 0"
+      [class.border-b-2]="selectedTab === 0"
+      [class.border-purple-600]="selectedTab === 0"
+      [class.text-gray-500]="selectedTab !== 0"
+    >
+      <i class="bi bi-info-circle mr-1"></i>
+      Details
+    </button>
+
+    <button
+      type="button"
+      (click)="selectedTab = 1"
+      class="pb-2 px-1 text-sm font-medium transition"
+      [class.text-purple-600]="selectedTab === 1"
+      [class.border-b-2]="selectedTab === 1"
+      [class.border-purple-600]="selectedTab === 1"
+      [class.text-gray-500]="selectedTab !== 1"
+    >
+      <i class="bi bi-shield-lock mr-1"></i>
+      Permissions
+    </button>
+  </nav>
+</div>
+
+    <!-- Tab Contents -->
+    <div class="mt-4">
+
+        <!-- 🔵 Details Tab -->
+        <div *ngIf="selectedTab === 0">
+          <!-- Username & Full Name -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Username</label>
+              <input type="text" formControlName="name" class="form-input w-full border p-2 rounded" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Full Name</label>
+              <input type="text" formControlName="fullName" class="form-input w-full border p-2 rounded" />
+            </div>
+          </div>
+
+          <!-- Password & Mobile -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div  *ngIf="!isEdit">
+              <label class="block text-sm font-medium text-gray-700">Password</label>
+              <input type="text" formControlName="password" class="form-input w-full border p-2 rounded" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Mobile/Telephone No.</label>
+              <input type="text" formControlName="phone" class="form-input w-full border p-2 rounded" />
+            </div>
+          </div>
+
+          <!-- Email & Emp Code -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" formControlName="email" class="form-input w-full border p-2 rounded" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Employee Code</label>
+              <input type="text" formControlName="empCode" class="form-input w-full border p-2 rounded" />
+            </div>
+          </div>
+
+          <!-- Exclude URLs & Special Privileges -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Exclude URLs -->
+            <div>
+              <label class="block text-sm font-medium text-purple-700 mb-1">Exclude URLs</label>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-select formControlName="excludeUrl" multiple>
+                  <mat-option *ngFor="let route of menuRoutes" [value]="route._id">
+                    {{ route.label }} ({{ route.path }})
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- Special Privileges -->
+            <div formArrayName="specialPrevelage">
+              <div *ngFor="let group of specialPrevelage.controls; let i = index" [formGroupName]="i"
+                class="grid grid-cols-2 gap-2 items-center mb-2">
+                <input formControlName="key" placeholder="Key" class="p-2 border rounded" />
+                <div class="flex items-center gap-2">
+                  <input formControlName="value" placeholder="Value" class="p-2 border rounded w-full" />
+                  <button type="button" (click)="removeSpecialPriv(i)" class="text-red-500">❌</button>
+                </div>
+              </div>
+              <button type="button" (click)="addSpecialPriv()" class="text-blue-600 text-sm mt-2">+ Add Privilege</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 🟢 Permissions Tab -->
+        <div *ngIf="selectedTab === 1" class="p-4">
+          <ng-container *ngIf="linesArray && linesArray.length > 0">
+            <div formArrayName="lines">
+              <table class="table w-full border border-gray-300 rounded-md">
+                <thead class="bg-gray-100 text-left text-purple-700">
+                  <tr>
+                    <th class="p-3 border-b border-gray-300 w-[20%]">Lines</th>
+                    <th class="p-3 border-b border-gray-300 w-[20%]">Role</th>
+                    <th class="p-3 border-b border-gray-300 w-[60%]">Machines</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let line of linesArray.controls; let i = index" [formGroupName]="i"
+                    class="border-b border-gray-200 hover:bg-gray-50">
+
+                    <!-- Line Checkbox -->
+                    <td class="p-3 align-top border-r border-gray-200">
+                      <mat-checkbox formControlName="selected">
+                        {{ line.value.line_name }}
+                      </mat-checkbox>
+                    </td>
+
+                    <!-- Role Select -->
+                    <td class="p-3 align-top border-r border-gray-200">
+                      <ng-container *ngIf="line.get('selected')?.value">
+                        <mat-label>Select Role</mat-label>
+                        <mat-form-field appearance="outline" class="w-full">
+                          <mat-select formControlName="roles" class="custom-single-select">
+                            <mat-option *ngFor="let role of availableRoles" [value]="role._id">
+                              {{ role.name }}
+                            </mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </ng-container>
+                    </td>
+
+                    <!-- Machines -->
+                    <td class="p-3 align-top">
+                      <ng-container *ngIf="line.get('selected')?.value && getMachines(i)?.length">
+                        <div formArrayName="machines" class="flex flex-wrap gap-4">
+                          <div *ngFor="let machine of getMachines(i).controls; let j = index" [formGroupName]="j">
+                            <mat-checkbox formControlName="selected">
+                              {{ machine.value.name }}
+                            </mat-checkbox>
+                          </div>
+                        </div>
+                      </ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="pt-4 flex gap-4">
+          <button type="submit" class="text-white text-sm btn btn-secondary ti-btn ti-btn-secondary">
+            Submit
+          </button>
+          <button type="button" class="btn btn-secondary ti-btn ti-btn-soft-secondary" (click)="close()">
+            Cancel
+          </button>
+        </div>
+
+    </div>
+  </div>
+        </form>
+
+</div>

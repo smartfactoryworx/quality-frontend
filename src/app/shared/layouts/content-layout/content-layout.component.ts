@@ -1,10 +1,14 @@
 import { Component, ElementRef, Renderer2 } from '@angular/core';
 import { Menu, NavService } from '../../services/nav.service';
-import { NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
+import { SharedModule } from '../../shared.module';
+import { HeaderComponent } from '../../components/header/header.component';
+import { CommonModule } from '@angular/common';
 @Component({
     selector: 'app-content-layout',
-    standalone:false,
+    standalone:true,
+    imports:[SharedModule,RouterModule,HeaderComponent, CommonModule],
     templateUrl: './content-layout.component.html',
     
     styleUrl: './content-layout.component.scss',
@@ -12,8 +16,11 @@ import { filter, Subscription } from 'rxjs';
 export class ContentLayoutComponent {
   menuItems!:Menu[];
   menuitemsSubscribe$!:Subscription
+
+  hideHeader = false;
+
   constructor(
-    private navServices: NavService,  private router:Router,
+    private navServices: NavService,  private router:Router,private route: ActivatedRoute,
     private elementRef: ElementRef,private renderer:Renderer2
   ) {
     const htmlElement =
@@ -38,7 +45,9 @@ export class ContentLayoutComponent {
     this.menuitemsSubscribe$ = this.navServices.items.subscribe((items: any) => {
       this.menuItems = items;
     });
-  
+   this.route.data.subscribe((data) => {
+    this.hideHeader = data['hideHeader'] || false;
+  });
   }
 
   clearNavDropdown() {

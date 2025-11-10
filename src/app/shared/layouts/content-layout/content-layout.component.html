@@ -1,7 +1,7 @@
 <app-switcher></app-switcher>
 
 <div class="page">
-    <app-header></app-header>
+<app-header *ngIf="!hideHeader"></app-header>
     <app-sidebar appHoverEffectSidebar></app-sidebar>
 <div class="main-content app-content">
     <div class="container-fluid" (click)="clickOnBody()">

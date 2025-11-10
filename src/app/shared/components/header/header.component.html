@@ -21,24 +21,36 @@
             <!-- End::header-element -->
 
             <!-- Start::header-element -->
-            <div class="header-element mx-lg-0">
-                <a aria-label="Hide Sidebar" (click)="toggleSidebar()"
-                    class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle"
-                    data-bs-toggle="sidebar" href="javascript:void(0);"><span></span></a>
-            </div>
-            <!-- End::header-element -->
+<div class="header-element mx-lg-0 flex items-center gap-4">
+  <!-- Menu icon -->
+  <a aria-label="Hide Sidebar" (click)="toggleSidebar()"
+      class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle"
+      data-bs-toggle="sidebar" href="javascript:void(0);"><span></span></a>
+
+  <!-- ✅ Breadcrumb inside header -->
+  <div class="breadcrumb-inline flex items-center overflow-hidden max-w-[900px]">
+    <spk-breadcrumb
+  [items]="breadcrumbs"
+  (click)="onBreadcrumbClick($event)"
+  class="text-sm font-medium text-blue-700 hover:text-blue-900 dark:text-blue-400"
+></spk-breadcrumb>
+
+  </div>
+</div>
+<!-- End::header-element -->
+
 
             <!-- Start::header-element -->
             <div class="header-element header-search md:!block !hidden my-auto auto-complete-search">
                 <!-- Start::header-link -->
-                <input type="text" class="header-search-bar form-control" id="header-search" placeholder="'Search anything here ...'" spellcheck=false (click)="SearchHeader()"
+                <!-- <input type="text" class="header-search-bar form-control" id="header-search" placeholder="'Search anything here ...'" spellcheck=false (click)="SearchHeader()"
                 [(ngModel)]="text"
                 [ngModelOptions]="{ standalone: true }"
                 (keyup)="Search(text)"
                     [placeholder]="'Search anything here ...'"  autocomplete="off" autocapitalize="off">
                 <a aria-label="anchor" href="javascript:void(0);" class="header-search-icon border-0">
                     <i class="ri-search-line"></i>
-                </a>
+                </a> -->
                 <!-- End::header-link -->
                 <div
                 class="absolute w-full bg-white shadow-md mt-1 rounded-md border border-gray-300"
@@ -706,6 +718,8 @@
 
     </div>
     <!-- End::main-header-container -->
+<!-- ✅ Breadcrumb bar below the main header -->
+
 
 </header>
 <!-- /app-header -->

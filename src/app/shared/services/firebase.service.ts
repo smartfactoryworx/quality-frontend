@@ -1,27 +1,23 @@
 import { Injectable } from '@angular/core';
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { initializeApp, getApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
 import { environment } from '../../../environments/environment';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class FirebaseService {
-  constructor() {
-    AngularFireModule.initializeApp(environment.firebase);
-  }
+  private app = initializeApp(environment.firebase);
 
   getFirestore() {
-    return AngularFirestoreModule;
+    return getFirestore(this.app);
   }
 
   getDatabase() {
-    return AngularFireDatabaseModule;
+    return getDatabase(this.app);
   }
 
   getAuth() {
-    return AngularFireAuthModule;
+    return getAuth(this.app);
   }
 }

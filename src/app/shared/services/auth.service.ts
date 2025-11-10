@@ -1,147 +1,97 @@
-import { Injectable,NgZone } from '@angular/core';
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { AngularFirestoreDocument } from '@angular/fire/compat/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, User } from 'firebase/auth';
+import { getFirestore, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { environment } from '../../../environments/environment';
 
-export interface User {
-  uid: string;
-  email: string;
-  displayName: string;
-  photoURL: string;
-  emailVerified: boolean;
-}
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  authState: any;
-  afAuth: any;
-  afs: any;
-  public showLoader:boolean=false;
+  private app = initializeApp(environment.firebase);
+  private auth = getAuth(this.app);
+  private firestore = getFirestore(this.app);
 
-  constructor(private afu: AngularFireAuth, private router: Router,public ngZone: NgZone) {
-    this.afu.authState.subscribe((auth: any) => {
-      this.authState = auth;
-    });
+  public showLoader = false;
+  public authState: User | null = null;
 
+  constructor(private router: Router, public ngZone: NgZone) {
+    this.auth.onAuthStateChanged((user) => (this.authState = user));
   }
 
-  // all firebase getdata functions
-
+  // --- GETTERS ---
   get isUserAnonymousLoggedIn(): boolean {
-    return this.authState !== null ? this.authState.isAnonymous : false;
+    return this.authState ? (this.authState as any).isAnonymous : false;
   }
 
   get currentUserId(): string {
-    return this.authState !== null ? this.authState.uid : '';
+    return this.authState ? this.authState.uid : '';
   }
 
-  get currentUserName(): string {
-    return this.authState['email'];
+  get currentUserEmail(): string {
+    return this.authState ? this.authState.email ?? '' : '';
   }
 
-  get currentUser(): any {
-    return this.authState !== null ? this.authState : null;
+  get currentUser(): User | null {
+    return this.authState;
   }
 
   get isUserEmailLoggedIn(): boolean {
-    if (this.authState !== null && !this.isUserAnonymousLoggedIn) {
-      return true;
-    } else {
-      return false;
+    return !!(this.authState && !this.isUserAnonymousLoggedIn);
+  }
+
+  // --- AUTH ACTIONS ---
+
+  async registerWithEmail(email: string, password: string): Promise<void> {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      this.authState = userCredential.user;
+      await this.sendVerificationMail();
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
   }
 
-  registerWithEmail(email: string, password: string) {
-    return this.afu
-      .createUserWithEmailAndPassword(email, password)
-      .then((user: any) => {
-        this.authState = user;
-      })
-      .catch((_error: any) => {
-        console.log(_error);
-        throw _error;
-      });
+  async loginWithEmail(email: string, password: string): Promise<void> {
+    try {
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      this.authState = userCredential.user;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 
-  loginWithEmail(email: string, password: string) {
-    return this.afu
-      .signInWithEmailAndPassword(email, password)
-      .then((user: any) => {
-        this.authState = user;
-      })
-      .catch((_error: any) => {
-        console.log(_error);
-        throw _error;
-      });
-  }
-
-  singout(): void {
-    this.afu.signOut();
+  async signOut(): Promise<void> {
+    await signOut(this.auth);
     this.router.navigate(['/login']);
   }
-  
 
-    // Sign up with email/password
-    SignUp(email:any, password:any) {
-      return this.afAuth.createUserWithEmailAndPassword(email, password)
-        .then((result:any) => {
-          /* Call the SendVerificaitonMail() function when new user sign
-          up and returns promise */
-          this.SendVerificationMail();
-          this.SetUserData(result.user);
-        }).catch((error:any) => {
-          window.alert(error.message)
-        })
+  async sendVerificationMail(): Promise<void> {
+    if (this.auth.currentUser) {
+      await sendEmailVerification(this.auth.currentUser);
     }
-
-    // main verification function
-    SendVerificationMail() {
-      return this.afAuth.currentUser.then((u:any) => u.sendEmailVerification()).then(() => {
-          this.router.navigate(['/sales']);
-        })
-    }
-      // Set user
-  SetUserData(user:any) {
-    const userRef: AngularFirestoreDocument<any> = this.afs.doc(`users/${user.uid}`);
-    const userData: User = {
-      email: user.email,
-      displayName: user.displayName,
-      uid: user.uid,
-      photoURL: user.photoURL || 'src/favicon.ico',
-      emailVerified: user.emailVerified
-    };
-    userRef.delete().then(function () {})
-          .catch(function (error:any) {});
-    return userRef.set(userData, {
-      merge: true
-    });
   }
- // sign in function
- SignIn(email:any, password:any) {
-  return this.afAuth.signInWithEmailAndPassword(email, password)
-    .then((result:any) => {
-      if (result.user.emailVerified !== true) {
-        this.SetUserData(result.user);
-        this.SendVerificationMail();
-        this.showLoader = true;
-      } else {
-        this.showLoader = false;
-        this.ngZone.run(() => {
-          this.router.navigate(['/auth/login']);
-        });
-      }
-    }).catch((error:any) => {
-      throw error;
-    })
-}
-ForgotPassword(passwordResetEmail:any) {
-  return this.afAuth.sendPasswordResetEmail(passwordResetEmail)
-    .then(() => {
-      window.alert('Password reset email sent, check your inbox.');
-    }).catch((error:any) => {
-      window.alert(error);
-    });
-}
+
+  async setUserData(user: User): Promise<void> {
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const userData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName ?? '',
+      photoURL: user.photoURL ?? 'src/favicon.ico',
+      emailVerified: user.emailVerified,
+    };
+    await setDoc(userRef, userData, { merge: true });
+  }
+
+  async deleteUserData(user: User): Promise<void> {
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    await deleteDoc(userRef);
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    await sendPasswordResetEmail(this.auth, email);
+    alert('Password reset email sent. Check your inbox.');
+  }
 }

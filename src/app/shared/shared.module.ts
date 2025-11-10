@@ -19,9 +19,9 @@ import { TabToTopComponent } from './components/tab-to-top/tab-to-top.component'
 
 @NgModule({
     declarations: [
-        HeaderComponent,
+        //HeaderComponent,
         SidebarComponent,
-        ContentLayoutComponent,  
+        //ContentLayoutComponent,  
         SwitcherComponent,
         PageHeaderComponent,
         TabToTopComponent,
@@ -37,14 +37,15 @@ import { TabToTopComponent } from './components/tab-to-top/tab-to-top.component'
         RouterModule,
         OverlayscrollbarsModule,
         FormsModule,
+        HeaderComponent,
         ReactiveFormsModule,
         FullscreenDirective,
         ColorPickerModule
     ],
     exports:[
-        HeaderComponent,
+        //HeaderComponent,
         SidebarComponent,
-        ContentLayoutComponent,
+        //ContentLayoutComponent,
         SwitcherComponent,
         PageHeaderComponent, 
         TabToTopComponent,
