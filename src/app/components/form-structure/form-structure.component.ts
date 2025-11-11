@@ -17,30 +17,32 @@ type FieldType = 'text' | 'dropdown' | 'checkbox';
 })
 export class FormStructureComponent {
   // Define field templates with explicit index signature
-  fieldTemplates: Record<FieldType, any> = {
-    text: { type: 'text', label: 'Text Field' },
-    dropdown: { type: 'dropdown', label: 'Dropdown', options: ['Option 1', 'Option 2'] },
-    checkbox: { type: 'checkbox', label: 'Checkbox' }
-  };
+  availableFields = [
+    { type: 'text', label: 'Text Field' },
+    { type: 'dropdown', label: 'Dropdown', options: ['Option 1', 'Option 2'] },
+    { type: 'checkbox', label: 'Checkbox' }
+  ];
 
   droppedFields: any[] = [];
 
   /** Add a field by type (called from header buttons) */
-  addField(type: FieldType) {
-    const template = this.fieldTemplates[type];
-    if (template) {
-      this.droppedFields.push({ ...template });
+  onDrop(event: CdkDragDrop<any[]>) {
+    // If dropped inside the canvas from palette
+    if (event.previousContainer.id === 'fieldPalette' && event.container.id === 'canvasZone') {
+      const field = event.item.data;
+      this.droppedFields.push({ ...field });
+    }
+    // If reordering inside the canvas
+    else if (event.previousContainer === event.container) {
+      moveItemInArray(this.droppedFields, event.previousIndex, event.currentIndex);
     }
   }
 
-  /** Clear the canvas area */
   clearCanvas() {
     this.droppedFields = [];
   }
 
-  onDrop(event: CdkDragDrop<any[]>) {
-    if (event.previousContainer === event.container) {
-      moveItemInArray(this.droppedFields, event.previousIndex, event.currentIndex);
-    }
+  deleteField(index: number) {
+    this.droppedFields.splice(index, 1);
   }
 }
