@@ -26,3 +26,41 @@
   border: 1px solid #ddd;
   border-radius: 6px;
 }
+
+.cdk-drag-preview {
+  z-index: 9999 !important;
+  pointer-events: none;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  transform: scale(1.05);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.25;
+}
+
+.cdk-drag-animating,
+.cdk-drag-preview,
+.cdk-drag-placeholder {
+  transition: none !important;
+}
+
+/* Prevent Xintra layout from blocking drag */
+:host,
+.card,
+.canvas,
+.builder-container,
+.app-content,
+.page-main,
+.main-content {
+  overflow: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.cdk-drag {
+  cursor: grab;
+}
+
