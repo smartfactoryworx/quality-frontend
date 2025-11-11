@@ -8,6 +8,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { UserAdminService, LoginPayload } from '../../user-admin/services/user-admin.service';
 import { BreadcrumbService } from '../../shared/services/breadcrumb.service';
 import { catchError, finalize, of, switchMap } from 'rxjs';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -33,7 +34,8 @@ export class LoginComponent {
     private renderer: Renderer2,
     private toastr: ToastrService,
     private userAdminService: UserAdminService,
-    private breadcrumbService: BreadcrumbService // ✅ inject new service
+    private breadcrumbService: BreadcrumbService ,
+    private auth: AuthService,   
   ) {
     this.document.body.classList.add('authentication-background');
   }
@@ -62,7 +64,7 @@ login(): void {
   }
 
   this.isLoading = true;
-  const payload: LoginPayload = this.loginForm.value;
+  const payload: any = this.loginForm.value;
 
   this.userAdminService.login(payload).pipe(
     switchMap(() => this.breadcrumbService.ensureLoaded()),  // ← single, cached call
@@ -74,6 +76,7 @@ login(): void {
     })
   ).subscribe(userData => {
     if (!userData) return;
+    this.auth.setCurrentUser(payload.user);  
     this.breadcrumbService.setBreadcrumbs([]);
     this.toastr.success(`Welcome, ${userData.user?.name ?? ''}`, 'Login successful');
     this.router.navigate(['/hierarchy'], { replaceUrl: true });

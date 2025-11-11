@@ -32,6 +32,11 @@ export const hierarchyRoutes: Routes = [
             loadComponent: () =>
               import('../home/home.component').then((m) => m.HomeComponent),
           },
+          {
+            path: 'create-form',
+            loadComponent: () =>
+              import('../form-structure/form-structure.component').then((m) => m.FormStructureComponent),
+          },
           { path: '', redirectTo: 'home', pathMatch: 'full' },
         ],
       },

@@ -4,6 +4,7 @@ import { NavigationEnd, Router, Event,RouterOutlet } from '@angular/router';
 import { AppStateService } from './shared/services/app-state.service';
 import { BreadcrumbService } from './shared/services/breadcrumb.service';
 import { take } from 'rxjs';
+import { AuthService } from './shared/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,8 @@ import { take } from 'rxjs';
 })
 export class AppComponent {
   title = 'Xintra';
-  constructor(private appState : AppStateService,private router:Router,private breadcrumbService: BreadcrumbService){
+  constructor(private appState : AppStateService,private router:Router,
+    private breadcrumbService: BreadcrumbService,private auth: AuthService,){
     this.appState.updateState();
   }
 
@@ -26,6 +28,8 @@ export class AppComponent {
         }, 100);
       }
     });
-  this.breadcrumbService.ensureLoaded().pipe(take(1)).subscribe();
+this.breadcrumbService.ensureLoaded().subscribe(p => {
+    if (p?.user) this.auth.setCurrentUser(p.user);  // <-- set once on boot/refresh
+  });
   }
 }
