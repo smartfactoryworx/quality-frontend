@@ -51,6 +51,7 @@ export class HierarchyComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.route.params.subscribe((params) => {
         this.currentLevel = this.detectLevel(params);
+        this.breadcrumbService.setContext(params); 
         this.updateBreadcrumbs(params);
         this.updateRibbons(params);
       })
