@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-user-admin-home',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <h2>User Admin Module</h2>
-    <p>Welcome Superuser!</p>
+  imports: [CommonModule, RouterModule],
+  template: `<router-outlet></router-outlet>
   `,
 })
 export class UserAdminHomeComponent {}

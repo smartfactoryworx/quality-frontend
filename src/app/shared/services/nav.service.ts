@@ -1,7 +1,9 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, BehaviorSubject, fromEvent } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { Router,Params } from '@angular/router';
+import { BreadcrumbService, pickHierarchy  } from './breadcrumb.service';
+
 // Menu
 export interface Menu {
   headTitle?: string;
@@ -23,6 +25,8 @@ export interface Menu {
   menutype?:string;
   dirchange?: boolean;
   nochild?: any;
+    pathTemplate?: string;
+
 }
 
 @Injectable({
@@ -53,9 +57,11 @@ export class NavService implements OnDestroy {
 
   // Full screen
   public fullScreen = false;
+    private destroy$ = new Subject<void>();
+
   active: any;
 
-  constructor(private router: Router) {
+  constructor(private router: Router,private bc: BreadcrumbService) {
     this.setScreenWidth(window.innerWidth);
     fromEvent(window, 'resize')
       .pipe(debounceTime(1000), takeUntil(this.unsubscriber))
@@ -83,11 +89,62 @@ export class NavService implements OnDestroy {
   ngOnDestroy() {
     this.unsubscriber.next;
     this.unsubscriber.complete();
+    this.destroy$.next(); this.destroy$.complete();
   }
 
   private setScreenWidth(width: number): void {
     this.screenWidth.next(width);
   }
+
+// --- IN NavService ---
+  private currentRouteParams(): Params {
+    let node: any = this.router.routerState.snapshot.root;
+    const out: any = {};
+    while (node) { Object.assign(out, node.params); node = node.firstChild; }
+    return out;
+  }
+
+  /** Merge: route → breadcrumb context → caller overrides (later wins) */
+  private effectiveParams(overrides?: Params): Params {
+    const routeParams = this.currentRouteParams();
+    const ctxParams = pickHierarchy(this.bc.userSnapshot);
+    return { ...ctxParams, ...routeParams, ...(overrides ?? {}) };
+  }
+
+  /** Ensure all :placeholders exist */
+  private hasAll(template: string, params: Params): boolean {
+    let ok = true;
+    template.replace(/:([A-Za-z0-9_]+)/g, (_m, k) => {
+      if (params?.[k] === undefined || params?.[k] === null || params?.[k] === '') ok = false;
+      return '';
+    });
+    return ok;
+  }
+
+  /** Build URL from template (safe) */
+  private build(template: string, params: Params): string | null {
+    if (!this.hasAll(template, params)) return null;
+    const segments = template.split('/').filter(Boolean).map(seg => {
+      if (seg.startsWith(':')) return encodeURIComponent(String(params[seg.slice(1)]));
+      return seg;
+    });
+    const tree: any = this.router.createUrlTree(['/', ...segments]);
+    return this.router.serializeUrl(tree);
+  }
+
+  /** Public helpers used by the template */
+  public canResolve(menu: Menu, overrides?: Params): boolean {
+    if (menu.path) return true;
+    if (!menu.pathTemplate) return false;
+    return this.hasAll(menu.pathTemplate, this.effectiveParams(overrides));
+  }
+
+  public linkFor(menu: Menu, overrides?: Params): string | null {
+    if (menu.path) return menu.path;
+    if (!menu.pathTemplate) return null;
+    return this.build(menu.pathTemplate, this.effectiveParams(overrides));
+  }
+
 
   MENUITEMS: Menu[] = [
     // Dashboard
@@ -118,7 +175,13 @@ export class NavService implements OnDestroy {
       children: [
 
         
-        { path: '/home', title: 'Home', type: 'link', dirchange: false },
+{
+      title: 'Home',
+      type: 'link',
+      pathTemplate:
+          '/hierarchy/:company/:country/:state/:plant/:category/:line/:formgroup/home',
+      dirchange: false,
+    },
         // {
         //   path: '/dashboards/analytics',
         //   title: 'Analytics',

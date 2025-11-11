@@ -1,6 +1,23 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, finalize, Observable, of, shareReplay, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+// breadcrumb.service.ts
+export type HierParams =
+  'company'|'country'|'state'|'plant'|'category'|'line'|'formgroup';
+
+export function pickHierarchy(user: any): Partial<Record<HierParams,string>> {
+  // shape this to your user payload
+  const cur = user?.currentHierarchy ?? user?.defaultHierarchy ?? {};
+  return {
+    company:   cur.company?.code ?? cur.company ?? '',
+    country:   cur.country?.code ?? cur.country ?? '',
+    state:     cur.state?.code ?? cur.state ?? '',
+    plant:     cur.plant?.code ?? cur.plant ?? '',
+    category:  cur.category?.code ?? cur.category ?? '',
+    line:      cur.line?.code ?? cur.line ?? '',
+    formgroup: cur.formgroup?.code ?? cur.formgroup ?? '',
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +39,9 @@ export class BreadcrumbService {
   // ✅ Fetch current user + hierarchy from backend
    /** Call this to make sure user is loaded once. Never subscribe in here. */
  // breadcrumb.service.ts
+
+
+ 
 ensureLoaded(): Observable<any> {
   if (this._userData.value) return of(this._userData.value);
   if (this.inFlight$) return this.inFlight$;

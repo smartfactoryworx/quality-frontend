@@ -24,11 +24,19 @@ export class SidebarComponent {
   public menuItems!: Menu[];
   public menuitemsSubscribe$!: Subscription;
   constructor(
-    private navServices: NavService,
+    public navServices: NavService,
     public router: Router,
     public renderer: Renderer2,
     private sanitizer: DomSanitizer,
+    
   ) { }
+
+
+
+// Small helper to avoid repeating in template
+resolve(menu: Menu): string | null {
+  return this.navServices.linkFor(menu);
+}
   
   clearNavDropdown() {
     this.menuItems?.forEach((a: any) => {
