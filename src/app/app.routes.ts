@@ -37,6 +37,13 @@ export const routes: Routes = [
             (m) => m.HomeComponent
           ),
       },
+      {
+        path: 'create-form',
+        loadComponent:()=>
+          import('../app/components/form-structure/form-structure.component').then(
+            (m)=>m.FormStructureComponent
+          ),
+      },
     ],
   },
 {
