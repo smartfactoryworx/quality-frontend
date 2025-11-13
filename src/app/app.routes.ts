@@ -53,5 +53,5 @@ export const routes: Routes = [
             (m) => m.hierarchyRoutes
           ),
       },
-  { path: '**', redirectTo: '/error/error404', pathMatch: 'full' },
+ // { path: '**', redirectTo: '/error/error404', pathMatch: 'full' },
 ];

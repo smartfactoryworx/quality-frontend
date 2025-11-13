@@ -3,12 +3,13 @@ import { Menu, NavService } from '../../services/nav.service';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AppStateService } from '../../services/app-state.service';
 import { SwitcherComponent } from '../switcher/switcher.component';
-import { filter } from 'rxjs';
+import { filter, finalize } from 'rxjs';
 import { SpkBreadcrumbComponent } from '../../../../@spk/reusable-ui-elements/spk-breadcrumb/spk-breadcrumb.component';
 import { SharedModule } from '../../shared.module';
 import { CommonModule } from '@angular/common';
 import { OverlayscrollbarsModule } from 'overlayscrollbars-ngx';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
+import { UserAdminService } from '../../../user-admin/services/user-admin.service';
 
 interface Item {
   id: number;
@@ -30,6 +31,8 @@ export class HeaderComponent {
   cartItemCount: number = 5;
   notificationCount: number = 5;
   public isCollapsed = true;
+    loggingOut = false;
+
   collapse: any;
   closeResult = '';
   themeType: string | undefined;
@@ -43,7 +46,10 @@ export class HeaderComponent {
     private elementRef: ElementRef,
     public renderer: Renderer2,
     private breadcrumbService: BreadcrumbService,
-    private router: Router, private activatedRoute: ActivatedRoute
+    private router: Router, 
+    private activatedRoute: ActivatedRoute,     
+    private userAdmin: UserAdminService,
+
   ) {this.localStorageBackUp()}
 
   toggleDropdown() {
@@ -97,6 +103,27 @@ export class HeaderComponent {
   openSearch(search: any) {
     // this.modalService.open(search);
   }
+
+  onLogoutClick(ev: Event) {
+    ev.preventDefault();
+    if (this.loggingOut) return;
+    this.loggingOut = true;
+
+    this.userAdmin.logout()
+      .pipe(finalize(() => (this.loggingOut = false)))
+      .subscribe({
+        next: () => {
+          // server cookie cleared + local cleared in service
+          this.router.navigate(['/auth/login']);
+        },
+        error: () => {
+          // even if API fails, hard reset client and route to sign-in
+          //this.userAdmin.clearClientSession();
+          this.router.navigate(['/auth/login']);
+        }
+      });
+  }
+
 
   onBreadcrumbClick(event: any) {
   const target = event.target as HTMLElement;

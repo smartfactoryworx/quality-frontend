@@ -4,6 +4,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, se
 import { getFirestore, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 import { environment } from '../../../environments/environment';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -13,7 +14,9 @@ export class AuthService {
 
   public showLoader = false;
   public authState: User | null = null;
-
+ private _user$ = new BehaviorSubject<any | null>(null);
+  user$ = this._user$.asObservable();
+  
   constructor(private router: Router, public ngZone: NgZone) {
     this.auth.onAuthStateChanged((user) => (this.authState = user));
   }
@@ -32,8 +35,12 @@ export class AuthService {
   }
 
   get currentUser(): User | null {
-    return this.authState;
+    return this._user$.value; ;
   }
+
+    setCurrentUser(u: any) { this._user$.next(u); }
+    isSuperuser(): boolean { return !!this._user$.value?.superuser; }
+
 
   get isUserEmailLoggedIn(): boolean {
     return !!(this.authState && !this.isUserAnonymousLoggedIn);
