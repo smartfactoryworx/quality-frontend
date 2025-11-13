@@ -62,6 +62,7 @@
             ],
             "styles": [
               "src/styles.scss", "./node_modules/ngx-bar-rating/themes/br-default-theme.scss",
+                "node_modules/handsontable/dist/handsontable.full.min.css",
               "./node_modules/ngx-bar-rating/themes/br-square-theme.scss",
               "./node_modules/ngx-bar-rating/themes/br-horizontal-theme.scss",
               "./node_modules/ngx-bar-rating/themes/br-vertical-theme.scss",
@@ -127,7 +128,9 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+                "node_modules/handsontable/dist/handsontable.full.min.css"
+
             ],
             "scripts": ["node_modules/preline/dist/preline.js"]
           }

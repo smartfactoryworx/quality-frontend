@@ -1,0 +1,25 @@
+<!-- <div style="display:flex;gap:14px;align-items:center;justify-content:space-between;margin:8px 0;flex-wrap:wrap">
+  <label style="display:flex;gap:6px;align-items:center">
+    Filling Direction
+    <select [(ngModel)]="selectedFillingDirection" (change)="updateFillingDirection(selectedFillingDirection)">
+      <option *ngFor="let opt of fillingDirectionOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+    </select>
+  </label>
+</div> -->
+
+<app-handsontable-toolbar (action)="onToolbar($event)"></app-handsontable-toolbar>
+
+<app-handsontable-grid
+  [equipmentOptions]="opts.equip"
+  [statusOptions]="opts.status"
+  [fillingDirection]="selectedFillingDirection"
+  (dataChanged)="onDataChanged($event)">
+</app-handsontable-grid>
+
+<app-handsontable-role-modal
+  *ngIf="showRoleModal"
+  [roleOptions]="roleOptions"
+  [selectedRoles]="selectedRoles"
+  (confirm)="onConfirmRole($event)"
+  (cancel)="onCancelRole()">
+</app-handsontable-role-modal>

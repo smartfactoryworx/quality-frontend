@@ -111,7 +111,7 @@ export class NavService implements OnDestroy {
 }
 
 /** Build menu based on role (hides "User Admin" for non-superuser) */
-private computeMenuFor(user: any): Menu[] {
+  private computeMenuFor(user: any): Menu[] {
   const isSuper = !!user?.superuser;
   // clone once (avoid mutating original MENUITEMS)
   const base = JSON.parse(JSON.stringify(this.MENUITEMS)) as Menu[];
