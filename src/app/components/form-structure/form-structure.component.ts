@@ -5,13 +5,15 @@ import {
   CdkDragDrop,
   moveItemInArray
 } from '@angular/cdk/drag-drop';
+import { HandsontableComponent } from '../form-structure/handsontable/handsontable.component';
+
 
 type FieldType = 'text' | 'dropdown' | 'checkbox';
 
 @Component({
   selector: 'app-form-structure',
   standalone: true,
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, DragDropModule, HandsontableComponent],
   templateUrl: './form-structure.component.html',
   styleUrls: ['./form-structure.component.scss']
 })
@@ -20,7 +22,9 @@ export class FormStructureComponent {
   availableFields = [
     { type: 'text', label: 'Text Field' },
     { type: 'dropdown', label: 'Dropdown', options: ['Option 1', 'Option 2'] },
-    { type: 'checkbox', label: 'Checkbox' }
+    { type: 'checkbox', label: 'Checkbox' },
+      { type: 'handsontable', label: 'Spreadsheet' }   
+
   ];
 
   droppedFields: any[] = [];

@@ -1,52 +1,57 @@
 <!-- 🔹 Xintra Card Wrapper -->
-<div class="card border border-defaultborder rounded-xl shadow-sm bg-white dark:bg-bodybg p-4 builder-container">
-  <div class="card-header flex flex-wrap items-center justify-between gap-3 px-2 py-3 border-b border-defaultborder">
-    <h2 class="text-base font-semibold text-defaulttextcolor">Form Builder</h2>
-
-    <!-- 🧩 Field Buttons -->
-    <!-- 🧩 Field Palette (Drag Source) -->
 <div
-  class="flex gap-2"
-  cdkDropList
-  id="fieldPalette"
-  [cdkDropListData]="availableFields"
-  [cdkDropListConnectedTo]="['canvasZone']"
+  class=" border border-defaultborder rounded-xl shadow-sm bg-white dark:bg-bodybg builder-container"
 >
   <div
-    *ngFor="let field of availableFields"
-    class="btn btn-outline-primary btn-sm select-none"
-    cdkDrag
-    [cdkDragData]="field"
+    class="header flex flex-wrap items-center justify-between gap-1 px-1 py-2 border-b border-defaultborder"
   >
-    {{ field.label }}
+    <h2 class="text-base font-semibold text-defaulttextcolor">Form Builder</h2>
+
+    <!-- 🧩 Field Palette (Drag Source) -->
+    <div
+      class="flex gap-2 flex-wrap"
+      cdkDropList
+      id="fieldPalette"
+      [cdkDropListData]="availableFields"
+      [cdkDropListConnectedTo]="['canvasZone']"
+    >
+      <div
+        *ngFor="let field of availableFields"
+        class="btn btn-outline-primary btn-sm select-none"
+        cdkDrag
+        [cdkDragData]="field"
+      >
+        {{ field.label }}
+      </div>
+    </div>
+
+    <button
+      class="btn btn-outline-danger btn-sm"
+      type="button"
+      (click)="clearCanvas()"
+    >
+      Clear Canvas
+    </button>
   </div>
-</div>
 
-
-    <button class="btn btn-outline-danger btn-sm" type="button" (click)="clearCanvas()">Clear Canvas</button>
-  </div>
-
-  <div class="card-body p-4">
+  <div class=" p-4">
     <!-- 🔸 Canvas Area (Now reorderable) -->
     <div
-  class="canvas border border-defaultborder rounded-lg p-4 bg-bodybg2 dark:bg-bodybg"
-  cdkDropList
-  id="canvasZone"
-  [cdkDropListData]="droppedFields"
-  [cdkDropListConnectedTo]="['fieldPalette']"
-  (cdkDropListDropped)="onDrop($event)"
->
-
-      <!-- <h3 class="text-sm font-semibold text-defaulttextcolor mb-3">Canvas Area</h3> -->
-
+      class="canvas border border-defaultborder rounded-lg p-4 bg-bodybg2 dark:bg-bodybg"
+      cdkDropList
+      id="canvasZone"
+      [cdkDropListData]="droppedFields"
+      [cdkDropListConnectedTo]="['fieldPalette']"
+      (cdkDropListDropped)="onDrop($event)"
+    >
       <div *ngIf="!droppedFields.length" class="italic text-mutedtextcolor">
-        No fields added yet. Click a field type above to add one.
+        No fields added yet. Drag a field type above to add one.
       </div>
 
       <!-- 🔹 Each field can be reordered -->
       <div
         *ngFor="let field of droppedFields; let i = index"
-        class="canvas-field relative mb-4 border border-defaultborder rounded-md p-3 bg-gray-50 dark:bg-bodybg2 shadow-sm cursor-move"
+        class="canvas-field relative mb-4  rounded-md p-3 bg-gray-50 dark:bg-bodybg2 shadow-sm cursor-move"
         cdkDrag
       >
         <!-- 🗑️ Delete Button -->
@@ -57,18 +62,36 @@
         >
           ×
         </button>
+
         <label class="block text-sm font-medium mb-2 text-defaulttextcolor">
-          {{ field.label }}
+          
         </label>
 
+        <!-- 🔸 Render Field by Type -->
         <ng-container [ngSwitch]="field.type">
-          <input *ngSwitchCase="'text'" type="text" placeholder="Enter text" class="form-input w-full" />
+
+          <!-- 📝 Text -->
+          <input
+            *ngSwitchCase="'text'"
+            type="text"
+            placeholder="Enter text"
+            class="form-input w-full"
+          />
+
+          <!-- 🔽 Dropdown -->
           <select *ngSwitchCase="'dropdown'" class="form-select w-full">
             <option *ngFor="let opt of field.options">{{ opt }}</option>
           </select>
+
+          <!-- ☑️ Checkbox -->
           <div *ngSwitchCase="'checkbox'" class="flex items-center gap-2">
             <input type="checkbox" class="form-checkbox" />
             <span>Check me</span>
+          </div>
+
+          <!-- 📊 Handsontable Grid -->
+          <div *ngSwitchCase="'handsontable'" class="border rounded-md overflow-hidden">
+            <app-handsontable></app-handsontable>
           </div>
         </ng-container>
       </div>

@@ -5,6 +5,8 @@
 @forward'../node_modules/filepond/dist/filepond.min.css';
 @forward '../node_modules/flatpickr/dist/flatpickr.css';
 
+
+
 //ng2-nouislider
 @forward "../node_modules/nouislider/dist/nouislider.css";
 
@@ -28,6 +30,16 @@
 
 @import 'intl-tel-input/build/css/intlTelInput.css';
 @import "../node_modules/ngx-toastr/toastr.css";
+
+
+
+//handsontable
+
+@import "handsontable/styles/handsontable.min.css";
+@import "handsontable/styles/ht-theme-main.min.css";
+
+@import 'handsontable/styles/handsontable.css';
+@import 'handsontable/dist/handsontable.full.css';
 
 // swiper-container::part(button-next) {
 //     width:1rem !important;
