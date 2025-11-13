@@ -25,6 +25,7 @@
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
+  cursor: move;
 }
 
 .cdk-drag-preview {
@@ -63,4 +64,3 @@
 .cdk-drag {
   cursor: grab;
 }
-
