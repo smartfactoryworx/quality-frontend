@@ -44,6 +44,17 @@
         Drop fields for {{ activeTab.title }} here
       </div>
 
+      <div class="flex justify-center mb-2">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-xs"
+          (click)="onAddSpreadsheet()"
+          title="Add Spreadsheet"
+        >
+          📊 Add Spreadsheet
+        </button>
+      </div>
+
       <div
         *ngFor="let innerField of activeTab.fields; let innerIndex = index"
         class="tab-inner-field border border-defaultborder rounded-md p-2 mb-2 bg-white dark:bg-bodybg shadow-sm"
@@ -69,6 +80,7 @@
             <input type="checkbox" class="form-checkbox" />
             <span>Check me</span>
           </div>
+          <app-handsontable *ngSwitchCase="'handsontable'"></app-handsontable>
         </ng-container>
       </div>
     </div>

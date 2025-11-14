@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  overflow: hidden;
+}
+
+:host ::ng-deep .handsontable {
+  width: 100%;
+  height: auto !important; /* ✅ prevents internal scrollbars */
+  overflow: visible !important;
+}
+
+:host ::ng-deep .wtHolder {
+  height: auto !important;
+}
+
+:host ::ng-deep .ht_master,
+:host ::ng-deep .ht_clone_top {
+  overflow: visible !important;
+}

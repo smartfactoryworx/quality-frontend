@@ -1,0 +1,82 @@
+<div class="toolbar" style="overflow:visible">
+
+  <!-- Dropdown for Static or Dynamic -->
+  <div class="relative inline-block">
+        <label class="item" >Mode:</label>
+    <button class="btn caret" (click)="toggleDropdown()">
+      {{ selectedMode | titlecase }}
+    </button>
+    <div *ngIf="isDropdownOpen" class="menu">
+      <button class="item" (click)="selectMode('dynamic')">Dynamic</button>
+      <button class="item" (click)="selectMode('static')">Static</button>
+    </div>
+  </div>
+
+  <!-- Dynamic mode shows these buttons -->
+  <div *ngIf="selectedMode === 'dynamic'">
+    <button class="btn" (click)="markSelectionAsMeasurement()">Measurement</button>
+    <button class="btn" (click)="markSelectionAsEquipment()">Section</button>
+    <label class="item" >Filling Direction</label>
+    <select (change)="onFillingDirectionChange($event)">
+      <option value="left_to_right">Left to Right</option>
+      <option value="top_to_bottom">Top to Bottom</option>
+    </select>
+  </div>
+
+  <!-- Static mode hides or disables the buttons -->
+  <!-- <div *ngIf="selectedMode === 'static'">
+    <button class="btn" disabled>Measurement (Disabled in Static mode)</button>
+    <button class="btn" disabled>Section (Disabled in Static mode)</button>
+    <button class="btn" disabled>Filling Direction (Disabled in Static mode)</button>
+  </div> -->
+
+  <label class="chip">Text
+    <input type="color" (input)="emit('textColor', $event)" />
+  </label>
+
+  <label class="chip">Fill
+    <input type="color" (input)="emit('bgColor', $event)" />
+  </label>
+
+  <button class="btn" (click)="emit('textStyle', 'bold')"><b>B</b></button>
+  <button class="btn" (click)="emit('textStyle', 'italic')"><i>I</i></button>
+  <button class="btn" (click)="emit('textStyle', 'underline')"><u>U</u></button>
+
+  <button class="btn" (click)="emit('applyAllBorders')">🟦 Border</button>
+
+  <button class="btn" (click)="emit('textAlign', 'left')">⟸</button>
+  <button class="btn" (click)="emit('textAlign', 'center')">☰</button>
+  <button class="btn" (click)="emit('textAlign', 'right')">⟹</button>
+
+  <!-- Validate dropdown -->
+  <div class="dropdown validate-dropdown" (click)="$event.stopPropagation()">
+    <button class="btn caret" (click)="toggleValidate()">Validate</button>
+    <div *ngIf="showValidate" class="menu" (click)="$event.stopPropagation()">
+      <button class="item" (click)="emit('validate', 'date'); toggleValidate()">📅 Date</button>
+      <button class="item" (click)="emit('validate', 'time'); toggleValidate()">⏰ Time</button>
+      <button class="item" (click)="emit('validate', 'integer'); toggleValidate()">🔢 Integer</button>
+      <button class="item" (click)="emit('validate', 'float'); toggleValidate()">💧 Float</button>
+      <button class="item" (click)="emit('validate', 'string'); toggleValidate()">Not empty</button>
+      <div class="sep"></div>
+      <button class="item danger" (click)="emit('mandatory', 'make'); toggleValidate()">❗ Mark as Mandatory</button>
+      <button class="item" (click)="emit('mandatory', 'clear'); toggleValidate()">Clear Required</button>
+    </div>
+  </div>
+
+  <!-- Inserts dropdown -->
+  <div class="dropdown insert-dropdown" (click)="$event.stopPropagation()">
+    <button class="btn caret" (click)="toggleInserts()">Inserts</button>
+    <div *ngIf="showInserts" class="menu" (click)="$event.stopPropagation()">
+      <button class="item" (click)="emit('insert', 'equip'); toggleInserts()">Apply Equipment</button>
+      <button class="item" (click)="emit('insert', 'status'); toggleInserts()">Apply Status</button>
+      <button class="item" (click)="emit('insert', 'checkbox'); toggleInserts()">Insert Checkbox</button>
+      <button class="item" (click)="emit('insert', 'datetime'); toggleInserts()">Apply Date & Time</button>
+      <div class="sep"></div>
+      <button class="item" (click)="emit('clear'); toggleInserts()">Clear Selection</button>
+    </div>
+  </div>
+
+  <!-- <button class="btn primary" (click)="emit('save')">💾 Save Structure</button>
+  <button class="btn" (click)="emit('submit')">Submit</button>
+  <button class="btn success" (click)="emit('dummy')">🎯 Load Dummy Data</button> -->
+</div>

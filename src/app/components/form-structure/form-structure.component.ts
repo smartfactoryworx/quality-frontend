@@ -8,10 +8,12 @@ import {
 } from '@angular/cdk/drag-drop';
 import { TabsComponent } from '../tabs/tabs.component';
 import { ColumnsComponent } from '../columns/columns.component';
+import { HandsontableComponent } from './handsontable/handsontable.component';
+
 
 type SimpleFieldType = 'text' | 'dropdown' | 'checkbox';
 type CompositeFieldType = 'tabs' | 'columns';
-type FieldType = SimpleFieldType | CompositeFieldType;
+type FieldType = SimpleFieldType | CompositeFieldType | 'handsontable';
 
 interface BaseField {
   id: string;
@@ -24,10 +26,14 @@ interface SimpleField extends BaseField {
   type: SimpleFieldType;
 }
 
+interface HandsontableField extends BaseField {
+  type: 'handsontable';
+}
+
 interface Tab {
   id: string;
   title: string;
-  fields: SimpleField[];
+  fields: (SimpleField | HandsontableField)[];
 }
 
 interface TabsField extends BaseField {
@@ -39,7 +45,7 @@ interface TabsField extends BaseField {
 interface Column {
   id: string;
   title: string;
-  fields: SimpleField[];
+  fields: (SimpleField | HandsontableField)[];
 }
 
 interface ColumnsField extends BaseField {
@@ -47,23 +53,23 @@ interface ColumnsField extends BaseField {
   columns: Column[];
 }
 
-type BuilderField = SimpleField | TabsField | ColumnsField;
+type BuilderField = SimpleField | TabsField | ColumnsField | HandsontableField;
 
 @Component({
   selector: 'app-form-structure',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule, TabsComponent, ColumnsComponent],
+  imports: [CommonModule, DragDropModule, FormsModule, TabsComponent, ColumnsComponent, HandsontableComponent],
   templateUrl: './form-structure.component.html',
   styleUrls: ['./form-structure.component.scss']
 })
 export class FormStructureComponent {
   private idCounter = 0;
-  private pendingColumnTarget: { fieldIndex: number; columnIndex: number } | null = null;
 
   availableFields = [
     { type: 'text', label: 'Text Field' },
     { type: 'dropdown', label: 'Dropdown', options: ['Option 1', 'Option 2'] },
     { type: 'checkbox', label: 'Checkbox' },
+    { type: 'handsontable', label: 'Spreadsheet' },
     { type: 'tabs', label: 'Tabs' },
     { type: 'columns', label: 'Columns' }
   ];
@@ -75,7 +81,7 @@ export class FormStructureComponent {
   }
 
   connectedTargets(currentId: string): string[] {
-    return ['fieldPalette', ...this.collectDropListIds().filter((id) => id !== currentId)];
+    return this.collectDropListIds().filter((id) => id !== currentId);
   }
 
   get canvasConnections(): string[] {
@@ -85,14 +91,7 @@ export class FormStructureComponent {
   onDrop(event: CdkDragDrop<BuilderField[]>) {
     if (event.previousContainer.id === 'fieldPalette' && event.container.id === 'canvasZone') {
       const template = event.item.data;
-      const newField = this.instantiateField(template);
-      if (this.pendingColumnTarget && this.isSimpleField(newField)) {
-        this.insertFieldIntoColumn(this.pendingColumnTarget.fieldIndex, this.pendingColumnTarget.columnIndex, newField);
-        this.pendingColumnTarget = null;
-        return;
-      }
-      this.pendingColumnTarget = null;
-      this.droppedFields.splice(event.currentIndex, 0, newField);
+      this.droppedFields.splice(event.currentIndex, 0, this.instantiateField(template));
     } else if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
@@ -105,7 +104,7 @@ export class FormStructureComponent {
     }
   }
 
-  dropOnTab(data: { fieldIndex: number; tabIndex: number; event: CdkDragDrop<SimpleField[]> }) {
+  dropOnTab(data: { fieldIndex: number; tabIndex: number; event: CdkDragDrop<any[]> }) {
     const { fieldIndex, tabIndex, event } = data;
     const tabsField = this.droppedFields[fieldIndex] as TabsField;
     if (!this.isTabsField(tabsField)) {
@@ -131,7 +130,7 @@ export class FormStructureComponent {
     }
   }
 
-  dropOnColumn(data: { fieldIndex: number; columnIndex: number; event: CdkDragDrop<SimpleField[]> }) {
+  dropOnColumn(data: { fieldIndex: number; columnIndex: number; event: CdkDragDrop<any[]> }) {
     const { fieldIndex, columnIndex, event } = data;
     const columnField = this.droppedFields[fieldIndex];
     if (!this.isColumnField(columnField)) {
@@ -154,20 +153,6 @@ export class FormStructureComponent {
         return;
       }
       column.fields.splice(event.currentIndex, 0, moved);
-    }
-  }
-
-  onColumnDragEntered(data: { fieldIndex: number; columnIndex: number }) {
-    this.pendingColumnTarget = data;
-  }
-
-  onColumnDragExited(data: { fieldIndex: number; columnIndex: number }) {
-    if (
-      this.pendingColumnTarget &&
-      this.pendingColumnTarget.fieldIndex === data.fieldIndex &&
-      this.pendingColumnTarget.columnIndex === data.columnIndex
-    ) {
-      this.pendingColumnTarget = null;
     }
   }
 
@@ -219,6 +204,36 @@ export class FormStructureComponent {
     field.columns[columnIndex].fields.splice(nestedIndex, 1);
   }
 
+  onAddSpreadsheetToTab(data: { fieldIndex: number; tabIndex: number }) {
+    const { fieldIndex, tabIndex } = data;
+    const tabsField = this.droppedFields[fieldIndex] as TabsField;
+    if (!this.isTabsField(tabsField)) {
+      return;
+    }
+    const tab = tabsField.tabs[tabIndex];
+    const spreadsheetField: HandsontableField = {
+      id: this.generateId(),
+      type: 'handsontable',
+      label: 'Spreadsheet'
+    };
+    tab.fields.push(spreadsheetField);
+  }
+
+  onAddSpreadsheetToColumn(data: { fieldIndex: number; columnIndex: number }) {
+    const { fieldIndex, columnIndex } = data;
+    const columnField = this.droppedFields[fieldIndex];
+    if (!this.isColumnField(columnField)) {
+      return;
+    }
+    const column = columnField.columns[columnIndex];
+    const spreadsheetField: HandsontableField = {
+      id: this.generateId(),
+      type: 'handsontable',
+      label: 'Spreadsheet'
+    };
+    column.fields.push(spreadsheetField);
+  }
+
   onSetActiveTab(data: { fieldIndex: number; tabIndex: number }) {
     const { fieldIndex, tabIndex } = data;
     const field = this.droppedFields[fieldIndex];
@@ -248,6 +263,10 @@ export class FormStructureComponent {
     return field as ColumnsField;
   }
 
+  asHandsontable(field: BuilderField): HandsontableField {
+    return field as HandsontableField;
+  }
+
 
   private instantiateField(template: any): BuilderField {
     if (template.type === 'tabs') {
@@ -268,6 +287,13 @@ export class FormStructureComponent {
         columns
       };
     }
+    if (template.type === 'handsontable') {
+      return {
+        id: this.generateId(),
+        type: 'handsontable',
+        label: template.label
+      };
+    }
 
     return {
       id: this.generateId(),
@@ -286,13 +312,10 @@ export class FormStructureComponent {
   }
 
   collectDropListIds(): string[] {
-    const ids = ['canvasZone'];
+    const ids = ['fieldPalette', 'canvasZone'];
     this.droppedFields.forEach((field) => {
       if (this.isTabsField(field)) {
-        const activeTab = this.getActiveTab(field);
-        if (activeTab) {
-          ids.push(this.getTabListId(field, activeTab));
-        }
+        field.tabs.forEach((tab) => ids.push(this.getTabListId(field, tab)));
       }
       if (this.isColumnField(field)) {
         field.columns.forEach((column) => ids.push(this.getColumnListId(field, column)));
@@ -349,13 +372,5 @@ export class FormStructureComponent {
   private generateId(): string {
     this.idCounter += 1;
     return `fld-${this.idCounter}`;
-  }
-
-  private insertFieldIntoColumn(fieldIndex: number, columnIndex: number, field: SimpleField) {
-    const columnField = this.droppedFields[fieldIndex];
-    if (!this.isColumnField(columnField)) {
-      return;
-    }
-    columnField.columns[columnIndex].fields.push(field);
   }
 }

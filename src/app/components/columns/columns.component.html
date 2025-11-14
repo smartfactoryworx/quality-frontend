@@ -4,7 +4,7 @@
   cdkDropListGroup
 >
   <div
-     class="column-panel border border-dashed border-defaultborder rounded-md p-3 bg-white dark:bg-bodybg"
+    class="column-panel border border-dashed border-defaultborder rounded-md p-3 bg-white dark:bg-bodybg"
     *ngFor="let column of columnsField.columns; let c = index"
   >
 
@@ -15,11 +15,20 @@
       [cdkDropListData]="column.fields"
       [cdkDropListConnectedTo]="getConnectedTargets(getColumnListId(column))"
       (cdkDropListDropped)="onDropOnColumn(c, $event)"
-      (cdkDragEntered)="onDragEntered(c, $any($event))"
-      (cdkDragExited)="onDragExited(c, $any($event))"
     >
       <div *ngIf="!column.fields.length" class="text-xs italic text-mutedtextcolor py-4 text-center">
         Drop fields for {{ column.title }} here
+      </div>
+
+      <div class="flex justify-center mb-2">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-xs"
+          (click)="onAddSpreadsheet(c)"
+          title="Add Spreadsheet"
+        >
+          📊 Add Spreadsheet
+        </button>
       </div>
 
       <div
@@ -47,6 +56,7 @@
             <input type="checkbox" class="form-checkbox" />
             <span>Check me</span>
           </div>
+          <app-handsontable *ngSwitchCase="'handsontable'"></app-handsontable>
         </ng-container>
       </div>
     </div>

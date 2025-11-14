@@ -2,39 +2,17 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
-
-type SimpleFieldType = 'text' | 'dropdown' | 'checkbox';
-
-interface SimpleField {
-  id: string;
-  type: SimpleFieldType;
-  label: string;
-  options?: string[];
-}
-
-interface Tab {
-  id: string;
-  title: string;
-  fields: SimpleField[];
-}
-
-interface TabsField {
-  id: string;
-  type: 'tabs';
-  label: string;
-  tabs: Tab[];
-  activeTabIndex: number;
-}
+import { HandsontableComponent } from '../form-structure/handsontable/handsontable.component';
 
 @Component({
   selector: 'app-tabs',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule],
+  imports: [CommonModule, DragDropModule, FormsModule, HandsontableComponent],
   templateUrl: './tabs.component.html',
   styleUrls: ['./tabs.component.scss']
 })
 export class TabsComponent {
-  @Input() tabsField!: TabsField;
+  @Input() tabsField!: any;
   @Input() fieldIndex!: number;
   @Input() connectedTargets: string[] = [];
 
@@ -43,13 +21,14 @@ export class TabsComponent {
   @Output() updateTabTitle = new EventEmitter<{ fieldIndex: number; tabIndex: number; value: string }>();
   @Output() setActiveTab = new EventEmitter<{ fieldIndex: number; tabIndex: number }>();
   @Output() deleteNestedField = new EventEmitter<{ fieldIndex: number; tabIndex: number; nestedIndex: number }>();
-  @Output() dropOnTab = new EventEmitter<{ fieldIndex: number; tabIndex: number; event: CdkDragDrop<SimpleField[]> }>();
+  @Output() dropOnTab = new EventEmitter<{ fieldIndex: number; tabIndex: number; event: CdkDragDrop<any[]> }>();
+  @Output() addSpreadsheet = new EventEmitter<{ fieldIndex: number; tabIndex: number }>();
 
-  getTabListId(tab: Tab): string {
+  getTabListId(tab: any): string {
     return `tab-${this.tabsField.id}-${tab.id}`;
   }
 
-  getActiveTab(): Tab | null {
+  getActiveTab(): any | null {
     if (!this.tabsField.tabs.length) {
       return null;
     }
@@ -84,12 +63,16 @@ export class TabsComponent {
     this.deleteNestedField.emit({ fieldIndex: this.fieldIndex, tabIndex, nestedIndex });
   }
 
-  onDropOnTab(tabIndex: number, event: CdkDragDrop<SimpleField[]>): void {
+  onDropOnTab(tabIndex: number, event: CdkDragDrop<any[]>): void {
     this.dropOnTab.emit({ fieldIndex: this.fieldIndex, tabIndex, event });
   }
 
   getConnectedTargets(tabId: string): string[] {
-    return ['fieldPalette', ...this.connectedTargets.filter(id => id !== tabId)];
+    return this.connectedTargets.filter((id) => id !== tabId);
+  }
+
+  onAddSpreadsheet(): void {
+    this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, tabIndex: this.getActiveTabIndex() });
   }
 }
 
