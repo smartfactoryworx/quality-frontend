@@ -1,19 +1,13 @@
-<!-- 🔹 Xintra Card Wrapper -->
-<div
-  class=" border border-defaultborder rounded-xl shadow-sm bg-white dark:bg-bodybg builder-container"
->
-  <div
-    class="header flex flex-wrap items-center justify-between gap-1 px-1 py-2 border-b border-defaultborder"
-  >
+<div class="card border border-defaultborder rounded-xl shadow-sm bg-white dark:bg-bodybg p-4 builder-container">
+  <div class="card-header flex flex-wrap items-center justify-between gap-3 px-2 py-3 border-b border-defaultborder">
     <h2 class="text-base font-semibold text-defaulttextcolor">Form Builder</h2>
 
-    <!-- 🧩 Field Palette (Drag Source) -->
     <div
       class="flex gap-2 flex-wrap"
       cdkDropList
       id="fieldPalette"
       [cdkDropListData]="availableFields"
-      [cdkDropListConnectedTo]="['canvasZone']"
+      [cdkDropListConnectedTo]="paletteConnections"
     >
       <div
         *ngFor="let field of availableFields"
@@ -25,74 +19,87 @@
       </div>
     </div>
 
-    <button
-      class="btn btn-outline-danger btn-sm"
-      type="button"
-      (click)="clearCanvas()"
-    >
-      Clear Canvas
-    </button>
+    <button class="btn btn-outline-danger btn-sm" type="button" (click)="clearCanvas()">Clear Canvas</button>
   </div>
 
-  <div class=" p-4">
-    <!-- 🔸 Canvas Area (Now reorderable) -->
+  <div class="card-body p-4">
     <div
       class="canvas border border-defaultborder rounded-lg p-4 bg-bodybg2 dark:bg-bodybg"
       cdkDropList
       id="canvasZone"
       [cdkDropListData]="droppedFields"
-      [cdkDropListConnectedTo]="['fieldPalette']"
+      [cdkDropListConnectedTo]="canvasConnections"
       (cdkDropListDropped)="onDrop($event)"
     >
       <div *ngIf="!droppedFields.length" class="italic text-mutedtextcolor">
-        No fields added yet. Drag a field type above to add one.
+        No fields added yet. Click a field type above to add one.
       </div>
 
-      <!-- 🔹 Each field can be reordered -->
       <div
         *ngFor="let field of droppedFields; let i = index"
-        class="canvas-field relative mb-4  rounded-md p-3 bg-gray-50 dark:bg-bodybg2 shadow-sm cursor-move"
+        class="canvas-field relative mb-4 border border-defaultborder rounded-md p-3 bg-gray-50 dark:bg-bodybg2 shadow-sm"
         cdkDrag
       >
-        <!-- 🗑️ Delete Button -->
-        <button
-          type="button"
-          class="absolute top-2 right-2 text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
-          (click)="deleteField(i)"
-        >
-          ×
-        </button>
+        <div class="field-toolbar flex items-center justify-between mb-3">
+          <span class="text-[11px] uppercase tracking-wide text-defaulttextcolor">{{ field.label }}</span>
+          <button
+            type="button"
+            class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
+            (click)="deleteField(i)"
+          >&times;</button>
+        </div>
 
-        <label class="block text-sm font-medium mb-2 text-defaulttextcolor">
-          
-        </label>
-
-        <!-- 🔸 Render Field by Type -->
         <ng-container [ngSwitch]="field.type">
+          <ng-container *ngSwitchCase="'text'">
+            <input type="text" placeholder="Enter text" class="form-input w-full" />
+          </ng-container>
 
-          <!-- 📝 Text -->
-          <input
-            *ngSwitchCase="'text'"
-            type="text"
-            placeholder="Enter text"
-            class="form-input w-full"
-          />
+          <ng-container *ngSwitchCase="'dropdown'">
+            <select class="form-select w-full">
+              <option *ngFor="let opt of field.options">{{ opt }}</option>
+            </select>
+          </ng-container>
 
-          <!-- 🔽 Dropdown -->
-          <select *ngSwitchCase="'dropdown'" class="form-select w-full">
-            <option *ngFor="let opt of field.options">{{ opt }}</option>
-          </select>
+          <ng-container *ngSwitchCase="'checkbox'">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="form-checkbox" />
+              <span>Check me</span>
+            </div>
+          </ng-container>
 
-          <!-- ☑️ Checkbox -->
-          <div *ngSwitchCase="'checkbox'" class="flex items-center gap-2">
-            <input type="checkbox" class="form-checkbox" />
-            <span>Check me</span>
-          </div>
-
-          <!-- 📊 Handsontable Grid -->
-          <div *ngSwitchCase="'handsontable'" class="border rounded-md overflow-hidden">
+          <ng-container *ngSwitchCase="'handsontable'">
             <app-handsontable></app-handsontable>
-          </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'tabs'">
+            <ng-container *ngIf="asTabs(field) as tabsField">
+              <app-tabs
+                [tabsField]="tabsField"
+                [fieldIndex]="i"
+                [connectedTargets]="collectDropListIds()"
+                (addTab)="onAddTab($event)"
+                (deleteTab)="onDeleteTab($event)"
+                (updateTabTitle)="onUpdateTabTitle($event)"
+                (setActiveTab)="onSetActiveTab($event)"
+                (deleteNestedField)="onDeleteNestedField($event)"
+                (dropOnTab)="dropOnTab($event)"
+                (addSpreadsheet)="onAddSpreadsheetToTab($event)"
+              ></app-tabs>
+            </ng-container>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'columns'">
+            <ng-container *ngIf="asColumns(field) as columnsField">
+              <app-columns
+                [columnsField]="columnsField"
+                [fieldIndex]="i"
+                [connectedTargets]="collectDropListIds()"
+                (dropOnColumn)="dropOnColumn($event)"
+                (deleteColumnField)="onDeleteColumnField($event)"
+                (addSpreadsheet)="onAddSpreadsheetToColumn($event)"
+              ></app-columns>
+            </ng-container>
+          </ng-container>
         </ng-container>
       </div>
     </div>

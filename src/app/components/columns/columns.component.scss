@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+.columns-wrapper {
+  .column-panel {
+    transition: border-color 0.2s ease;
+    &:hover {
+      border-color: var(--primary);
+    }
+  }
+  .column-dropzone {
+    min-height: 140px;
+  }
+}
+.column-inner-field {
+  cursor: move;
+}
+
+.column-title {
+  letter-spacing: 0.04em;
+}

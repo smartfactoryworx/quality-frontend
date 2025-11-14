@@ -1,0 +1,64 @@
+<div
+  class="columns-wrapper grid gap-4"
+  [style.gridTemplateColumns]="'repeat(' + columnsField.columns.length + ', minmax(0, 1fr))'"
+  cdkDropListGroup
+>
+  <div
+    class="column-panel border border-dashed border-defaultborder rounded-md p-3 bg-white dark:bg-bodybg"
+    *ngFor="let column of columnsField.columns; let c = index"
+  >
+
+    <div
+      class="column-dropzone border border-defaultborder rounded p-3 bg-bodybg2 dark:bg-bodybg"
+      cdkDropList
+      [id]="getColumnListId(column)"
+      [cdkDropListData]="column.fields"
+      [cdkDropListConnectedTo]="getConnectedTargets(getColumnListId(column))"
+      (cdkDropListDropped)="onDropOnColumn(c, $event)"
+    >
+      <div *ngIf="!column.fields.length" class="text-xs italic text-mutedtextcolor py-4 text-center">
+        Drop fields for {{ column.title }} here
+      </div>
+
+      <div class="flex justify-center mb-2">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-xs"
+          (click)="onAddSpreadsheet(c)"
+          title="Add Spreadsheet"
+        >
+          📊 Add Spreadsheet
+        </button>
+      </div>
+
+      <div
+        *ngFor="let innerField of column.fields; let innerIndex = index"
+        class="column-inner-field border border-defaultborder rounded-md p-2 mb-2 bg-white dark:bg-bodybg shadow-sm"
+        cdkDrag
+      >
+        <div class="inner-field-toolbar flex items-center justify-between mb-2">
+          <span class="text-[11px] uppercase tracking-wide text-defaulttextcolor">
+            {{ innerField.label }}
+          </span>
+          <button
+            type="button"
+            class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
+            (click)="onDeleteNestedField(c, innerIndex)"
+          >&times;</button>
+        </div>
+
+        <ng-container [ngSwitch]="innerField.type">
+          <input *ngSwitchCase="'text'" type="text" placeholder="Enter text" class="form-input w-full" />
+          <select *ngSwitchCase="'dropdown'" class="form-select w-full">
+            <option *ngFor="let opt of innerField.options">{{ opt }}</option>
+          </select>
+          <div *ngSwitchCase="'checkbox'" class="flex items-center gap-2">
+            <input type="checkbox" class="form-checkbox" />
+            <span>Check me</span>
+          </div>
+          <app-handsontable *ngSwitchCase="'handsontable'"></app-handsontable>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
