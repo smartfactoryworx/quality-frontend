@@ -20,10 +20,14 @@ interface BaseField {
   type: FieldType;
   label: string;
   options?: string[];
+  value?: any;
+  key?: string;
 }
 
 interface SimpleField extends BaseField {
   type: SimpleFieldType;
+  value?: any;
+  key?: string;
 }
 
 interface HandsontableField extends BaseField {
@@ -33,7 +37,7 @@ interface HandsontableField extends BaseField {
 interface Tab {
   id: string;
   title: string;
-  fields: (SimpleField | HandsontableField)[];
+  fields: (SimpleField | HandsontableField | ColumnsField)[];
 }
 
 interface TabsField extends BaseField {
@@ -76,9 +80,20 @@ export class FormStructureComponent {
 
   droppedFields: BuilderField[] = [];
 
+  // form-structure.component.ts
   get paletteConnections(): string[] {
-    return this.collectDropListIds().filter((id) => id !== 'fieldPalette');
+    // include EVERY list id (palette, canvas, tabs, columns...)
+    // don't filter out 'fieldPalette' here
+    return this.collectDropListIds();
   }
+  // form-structure.component.ts
+  canvasEnterPredicate = () => {
+    // refuse entering canvas while a child list is the actual hover target
+    const el = document.querySelector('.cdk-drop-list-receiving');
+    // if a child list is already receiving the drag, don't let canvas accept it
+    return !el || (el as HTMLElement).id === 'canvasZone';
+  };
+
 
   connectedTargets(currentId: string): string[] {
     return this.collectDropListIds().filter((id) => id !== currentId);
@@ -104,31 +119,29 @@ export class FormStructureComponent {
     }
   }
 
-  dropOnTab(data: { fieldIndex: number; tabIndex: number; event: CdkDragDrop<any[]> }) {
-    const { fieldIndex, tabIndex, event } = data;
-    const tabsField = this.droppedFields[fieldIndex] as TabsField;
-    if (!this.isTabsField(tabsField)) {
-      return;
-    }
-    const tab = tabsField.tabs[tabIndex];
-    if (event.previousContainer.id === 'fieldPalette') {
-      const template = event.item.data;
-      const newField = this.instantiateField(template);
-      if (!this.isSimpleField(newField)) {
-        return;
-      }
-      tab.fields.splice(event.currentIndex, 0, newField);
-    } else if (event.previousContainer === event.container) {
-      moveItemInArray(tab.fields, event.previousIndex, event.currentIndex);
-    } else {
-      const source = event.previousContainer.data as BuilderField[];
-      const [moved] = source.splice(event.previousIndex, 1);
-      if (!moved || !this.isSimpleField(moved)) {
-        return;
-      }
-      tab.fields.splice(event.currentIndex, 0, moved);
-    }
+dropOnTab(data: { fieldIndex: number; tabIndex: number; event: CdkDragDrop<any[]> }) {
+  const { fieldIndex, tabIndex, event } = data;
+  const tabsField = this.droppedFields[fieldIndex] as TabsField;
+  if (!this.isTabsField(tabsField)) return;
+
+  const tab:any = tabsField.tabs[tabIndex];
+
+  if (event.previousContainer.id === 'fieldPalette') {
+    const template = event.item.data;
+    const newField:any = this.instantiateField(template);
+    if (!this.isNestableField(newField)) return;
+    tab.fields.splice(event.currentIndex, 0, newField);
+  } else if (event.previousContainer === event.container) {
+    moveItemInArray(tab.fields, event.previousIndex, event.currentIndex);
+  } else {
+    const source = event.previousContainer.data as BuilderField[];
+    const [moved] = source.splice(event.previousIndex, 1);
+    if (!moved || !this.isNestableField(moved)) return;
+    tab.fields.splice(event.currentIndex, 0, moved);
   }
+}
+
+
 
   dropOnColumn(data: { fieldIndex: number; columnIndex: number; event: CdkDragDrop<any[]> }) {
     const { fieldIndex, columnIndex, event } = data;
@@ -136,11 +149,13 @@ export class FormStructureComponent {
     if (!this.isColumnField(columnField)) {
       return;
     }
-    const column = columnField.columns[columnIndex];
+
+    const column:any = columnField.columns[columnIndex];
     if (event.previousContainer.id === 'fieldPalette') {
       const template = event.item.data;
-      const newField = this.instantiateField(template);
-      if (!this.isSimpleField(newField)) {
+      const newField: any = this.instantiateField(template);
+     
+      if (!this.isNestableField(newField)) {
         return;
       }
       column.fields.splice(event.currentIndex, 0, newField);
@@ -149,7 +164,8 @@ export class FormStructureComponent {
     } else {
       const source = event.previousContainer.data as BuilderField[];
       const [moved] = source.splice(event.previousIndex, 1);
-      if (!moved || !this.isSimpleField(moved)) {
+     
+      if (!moved || !this.isNestableField(moved)) {
         return;
       }
       column.fields.splice(event.currentIndex, 0, moved);
@@ -254,7 +270,7 @@ export class FormStructureComponent {
   getTabListId(field: TabsField, tab: Tab) {
     return `tab-${field.id}-${tab.id}`;
   }
-  
+
   asTabs(field: BuilderField): TabsField {
     return field as TabsField;
   }
@@ -310,19 +326,40 @@ export class FormStructureComponent {
       fields: []
     };
   }
+  // 👇 Add this inside FormStructureComponent (class body)
+private collectIdsFromFields(fields: BuilderField[], out: Set<string>) {
+  for (const f of fields) {
+    // tabs: add the tab droplist id, then scan its inner fields for columns
+    if (this.isTabsField(f)) {
+      for (const tab of f.tabs) {
+        out.add(this.getTabListId(f, tab));
+        // look for Columns dropped INSIDE this tab
+        for (const inner of (tab.fields as unknown as BuilderField[])) {
+          if (this.isColumnField(inner)) {
+            for (const col of inner.columns) {
+              out.add(this.getColumnListId(inner, col));
+            }
+          }
+        }
+      }
+    }
+
+    // top-level columns
+    if (this.isColumnField(f)) {
+      for (const col of f.columns) {
+        out.add(this.getColumnListId(f, col));
+      }
+    }
+    // (optional) recurse here if you later allow columns-inside-columns
+  }
+}
+
 
   collectDropListIds(): string[] {
-    const ids = ['fieldPalette', 'canvasZone'];
-    this.droppedFields.forEach((field) => {
-      if (this.isTabsField(field)) {
-        field.tabs.forEach((tab) => ids.push(this.getTabListId(field, tab)));
-      }
-      if (this.isColumnField(field)) {
-        field.columns.forEach((column) => ids.push(this.getColumnListId(field, column)));
-      }
-    });
-    return ids;
-  }
+  const out = new Set<string>(['fieldPalette', 'canvasZone']);
+  this.collectIdsFromFields(this.droppedFields, out);
+  return Array.from(out);
+}
 
   getColumnListId(field: ColumnsField, column: Column) {
     return `col-${field.id}-${column.id}`;
@@ -339,6 +376,13 @@ export class FormStructureComponent {
   private isSimpleField(field: BuilderField): field is SimpleField {
     return field.type === 'text' || field.type === 'dropdown' || field.type === 'checkbox';
   }
+
+  // ✅ Allow simple fields AND spreadsheet inside tabs/columns
+  private isNestableField(field: BuilderField): field is SimpleField | HandsontableField | ColumnsField | TabsField {
+  // you can decide if tabs-inside-tabs is allowed; columns-in-tabs is the key ask
+  return this.isSimpleField(field) || field.type === 'handsontable' || field.type === 'columns';
+}
+
 
   private getActiveTab(field: TabsField): Tab | null {
     if (!field.tabs.length) {
