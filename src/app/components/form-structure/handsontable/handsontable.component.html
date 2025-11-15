@@ -10,10 +10,12 @@
 <app-handsontable-toolbar (action)="onToolbar($event)"></app-handsontable-toolbar>
 
 <app-handsontable-grid
+  [hotId]="hotId"
   [equipmentOptions]="opts.equip"
   [statusOptions]="opts.status"
   [fillingDirection]="selectedFillingDirection"
-  (dataChanged)="onDataChanged($event)">
+  (dataChanged)="onDataChanged($event)"
+  (gridSubmitted)="onGridSubmitted($event)">
 </app-handsontable-grid>
 
 <app-handsontable-role-modal

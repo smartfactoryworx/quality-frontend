@@ -19,9 +19,11 @@ type AllowedNested =
   styleUrls: ['./tabs.component.scss']
 })
 export class TabsComponent {
+
   @Input() tabsField!: any;
   @Input() fieldIndex!: number;
   @Input() connectedTargets: string[] = [];
+  @Input() saveVersion = 0;
 
   @Output() addTab = new EventEmitter<number>();
   @Output() deleteTab = new EventEmitter<{ fieldIndex: number; tabIndex: number }>();
@@ -30,14 +32,16 @@ export class TabsComponent {
   @Output() deleteNestedField = new EventEmitter<{ fieldIndex: number; tabIndex: number; nestedIndex: number }>();
   @Output() dropOnTab = new EventEmitter<{ fieldIndex: number; tabIndex: number; event: CdkDragDrop<any[]> }>();
   @Output() addSpreadsheet = new EventEmitter<{ fieldIndex: number; tabIndex: number }>();
+  @Output() spreadsheetSubmit = new EventEmitter<{ fieldIndex: number; tabIndex: number; fieldId: string; payload: any; version: number }>();
 
-  /** Always allow from palette (and canvas if needed) */
+  /** Always accept these */
   private baseAcceptIds = ['fieldPalette', 'canvasZone'];
 
-  // ── Utility for creating items from the palette ──────────────────────────────
+  // Utility
   private makeId(prefix = 'fld'): string {
     return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
   }
+
   private createFromPalette(tpl: any): AllowedNested | null {
     if (!tpl || !tpl.type) return null;
     if (tpl.type === 'text' || tpl.type === 'dropdown' || tpl.type === 'checkbox') {
@@ -51,59 +55,88 @@ export class TabsComponent {
     if (tpl.type === 'handsontable') {
       return { id: this.makeId(), type: 'handsontable', label: 'Spreadsheet' };
     }
-    // Disallow composite types (tabs/columns) inside columns by default
     return null;
   }
+
   private isAllowedNested(x: any): x is AllowedNested {
-    return !!x && (x.type === 'text' || x.type === 'dropdown' || x.type === 'checkbox' || x.type === 'handsontable');
+    return !!x &&
+      (x.type === 'text' || x.type === 'dropdown' || x.type === 'checkbox' || x.type === 'handsontable');
   }
 
-  // ── Tabs helpers ─────────────────────────────────────────────────────────────
+  // ───────────────────────── Tabs Helpers ─────────────────────────
   getTabListId(tab: any): string {
     return `tab-${this.tabsField.id}-${tab.id}`;
   }
+
   getActiveTab(): any | null {
     if (!this.tabsField.tabs.length) return null;
     const index = this.getActiveTabIndex();
     return this.tabsField.tabs[index] || null;
   }
+
   getActiveTabIndex(): number {
-    if (this.tabsField.activeTabIndex == null) this.tabsField.activeTabIndex = 0;
-    return Math.min(Math.max(this.tabsField.activeTabIndex, 0), this.tabsField.tabs.length - 1);
+    if (this.tabsField.activeTabIndex == null) {
+      this.tabsField.activeTabIndex = 0;
+    }
+    return Math.min(
+      Math.max(this.tabsField.activeTabIndex, 0),
+      this.tabsField.tabs.length - 1
+    );
   }
+
   getConnectedTargets(tabId: string): string[] {
     return this.connectedTargets.filter((id) => id !== tabId);
   }
+
   connectedTargetsFor(tabId: string): string[] {
     const s = new Set<string>([...this.baseAcceptIds, ...this.connectedTargets]);
     s.delete(tabId);
     return Array.from(s);
   }
 
-  // ── Toolbar actions ──────────────────────────────────────────────────────────
+  // ───────────────────────── Toolbar Actions ─────────────────────────
   onAddTab(): void {
     this.addTab.emit(this.fieldIndex);
   }
+
   onDeleteTab(tabIndex: number): void {
     this.deleteTab.emit({ fieldIndex: this.fieldIndex, tabIndex });
   }
+
   onUpdateTabTitle(tabIndex: number, value: string): void {
     this.updateTabTitle.emit({ fieldIndex: this.fieldIndex, tabIndex, value });
   }
+
   onSetActiveTab(tabIndex: number): void {
     this.setActiveTab.emit({ fieldIndex: this.fieldIndex, tabIndex });
   }
+
   onDeleteNestedField(tabIndex: number, nestedIndex: number): void {
     this.deleteNestedField.emit({ fieldIndex: this.fieldIndex, tabIndex, nestedIndex });
   }
+
   onDropOnTab(tabIndex: number, event: CdkDragDrop<any[]>): void {
     this.dropOnTab.emit({ fieldIndex: this.fieldIndex, tabIndex, event });
   }
-  onAddSpreadsheet(): void {
-    this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, tabIndex: this.getActiveTabIndex() });
+
+  // ───────────────────── Spreadsheet (Developer A Logic) ─────────────────────
+  /** Add spreadsheet for specific tab index */
+  onAddSpreadsheet(tabIndex: number): void {
+    this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, tabIndex });
   }
 
-  // ── NEW: Handle drops into Columns that live inside a Tab ────────────────────
+  /** Submit spreadsheet (tabIndex passed correctly) */
+  onSpreadsheetSubmit(tabIndex: number, fieldId: string, submission: { payload: any; version: number }) {
+    this.spreadsheetSubmit.emit({
+      fieldIndex: this.fieldIndex,
+      tabIndex,
+      fieldId,
+      payload: submission.payload,
+      version: submission.version
+    });
+  }
+
+  // ───────────────── Nested Columns Handling (Developer B Logic) ─────────────
   onNestedColumnsDrop(columnsField: any, payload: { columnIndex: number; event: CdkDragDrop<any[]> }) {
     const { columnIndex, event } = payload;
     const column = columnsField?.columns?.[columnIndex];
@@ -140,28 +173,23 @@ export class TabsComponent {
     if (!column) return;
     column.fields.push({ id: this.makeId(), type: 'handsontable', label: 'Spreadsheet' });
   }
-// tabs.component.ts  (replace existing predicate)
-tabEnterPredicate = (drag: CdkDrag): boolean => {
-  const fromPalette = drag.dropContainer?.id === 'fieldPalette';
-  const t = (drag.data as any)?.type as string | undefined;
 
-  // If a child drop list (a column inside the tab) is already receiving,
-  // let that child take the drop instead of the tab.
-  const receiving = document.querySelector('.cdk-drop-list-receiving') as HTMLElement | null;
-  const childIsColumn = !!receiving && receiving.id.startsWith('col-');
+  // ───────────────────────── Tab Predicate ─────────────────────────
+  tabEnterPredicate = (drag: CdkDrag): boolean => {
+    const fromPalette = drag.dropContainer?.id === 'fieldPalette';
+    const t = (drag.data as any)?.type as string | undefined;
 
-  if (fromPalette) {
-    if (childIsColumn) return false; // hand off to column
+    const receiving = document.querySelector('.cdk-drop-list-receiving') as HTMLElement | null;
+    const childIsColumn = !!receiving && receiving.id.startsWith('col-');
 
-    // Allow spreadsheet and columns to land on the tab body directly
-    if (t === 'handsontable' || t === 'columns') return true;
+    if (fromPalette) {
+      if (childIsColumn) return false;
 
-    // Keep simple fields off the tab body (so users drop them into columns)
-    if (t === 'text' || t === 'dropdown' || t === 'checkbox') return false;
-  }
+      if (t === 'handsontable' || t === 'columns') return true;
 
-  // Moves from other lists (reorder/move) are fine.
-  return true;
-};
+      if (t === 'text' || t === 'dropdown' || t === 'checkbox') return false;
+    }
 
+    return true;
+  };
 }

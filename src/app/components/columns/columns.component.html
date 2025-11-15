@@ -7,87 +7,77 @@
     class="column-panel border border-dashed border-defaultborder rounded-md p-3 bg-white dark:bg-bodybg"
     *ngFor="let column of columnsField.columns; let c = index"
   >
-      <div class="column-dropzone border border-defaultborder rounded p-3 bg-bodybg2 dark:bg-bodybg"
-         cdkDropList
-         [id]="getColumnListId(column)"
-         [cdkDropListData]="column.fields"
-         [cdkDropListConnectedTo]="connectedTargetsFor(getColumnListId(column))"
-         (cdkDropListDropped)="onDropOnColumn(c, $event)">
-
-
-      <div *ngIf="!column.fields.length" class="text-xs italic text-mutedtextcolor py-4 text-center">
+    <div
+      class="column-dropzone border border-defaultborder rounded p-3 bg-bodybg2 dark:bg-bodybg"
+      cdkDropList
+      [id]="getColumnListId(column)"
+      [cdkDropListData]="column.fields"
+      [cdkDropListConnectedTo]="connectedTargetsFor(getColumnListId(column))"
+      (cdkDropListDropped)="onDropOnColumn(c, $event)"
+    >
+      <div *ngIf="!column.fields.length"
+           class="text-xs italic text-mutedtextcolor py-4 text-center">
         Drop fields for {{ column.title }} here
       </div>
 
-      <!-- <div class="flex justify-center mb-2">
-        <button type="button" class="btn btn-outline-primary btn-xs" (click)="onAddSpreadsheet(c)">
-          📊 Add Spreadsheet
-        </button>
-      </div> -->
-
-      <!-- Inner fields -->
       <div
         *ngFor="let innerField of column.fields; let innerIndex = index"
         class="column-inner-field border border-defaultborder rounded-md p-2 mb-2 bg-white dark:bg-bodybg shadow-sm"
         cdkDrag
       >
-        <!-- SIMPLE FIELDS: label + control(s) in one row -->
+
+        <!-- SIMPLE FIELDS -->
         <div
           *ngIf="innerField.type === 'text' || innerField.type === 'dropdown' || innerField.type === 'checkbox'; else complexBlock"
           class="flex items-center gap-3"
         >
-          <!-- Editable label -->
           <input [(ngModel)]="innerField.label" type="text" class="form-input w-40" placeholder="Label" />
 
-          <!-- Control by type -->
           <ng-container [ngSwitch]="innerField.type">
-            <!-- TEXT: value + key -->
             <ng-container *ngSwitchCase="'text'">
-              <input [(ngModel)]="innerField.value" type="text" class="form-input flex-1" placeholder="Enter text" />
-              <input [(ngModel)]="innerField.key" type="text" class="form-input w-48" placeholder="Key" />
+              <input [(ngModel)]="innerField.value" class="form-input flex-1" placeholder="Enter text" />
+              <input [(ngModel)]="innerField.key" class="form-input w-48" placeholder="Key" />
             </ng-container>
 
-            <!-- DROPDOWN -->
             <ng-container *ngSwitchCase="'dropdown'">
               <select [(ngModel)]="innerField.value" class="form-select flex-1">
-                <option *ngFor="let opt of (innerField.options || [])" [ngValue]="opt">{{ opt }}</option>
+                <option *ngFor="let opt of innerField.options" [ngValue]="opt">{{ opt }}</option>
               </select>
             </ng-container>
 
-            <!-- CHECKBOX -->
             <ng-container *ngSwitchCase="'checkbox'">
               <label class="inline-flex items-center gap-2">
                 <input [(ngModel)]="innerField.value" type="checkbox" class="form-checkbox" />
-                <span class="text-sm text-defaulttextcolor">Checked</span>
+                Checked
               </label>
             </ng-container>
           </ng-container>
 
-          <!-- Remove button -->
           <button
-            type="button"
-            class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
+            class="text-xs bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
             (click)="onDeleteNestedField(c, innerIndex)"
-            title="Remove"
-          >&times;</button>
+          >
+            &times;
+          </button>
         </div>
 
-        <!-- COMPLEX FIELDS (spreadsheet) full width, no label input -->
+        <!-- COMPLEX FIELDS (SPREADSHEET) -->
         <ng-template #complexBlock>
           <div class="w-full">
-            <ng-container [ngSwitch]="innerField.type">
-              <ng-container *ngSwitchCase="'handsontable'">
-                <div class="border rounded-md overflow-hidden w-full relative">
-                  <button
-                    type="button"
-                    class="absolute -top-2 -right-2 z-10 text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
-                    (click)="onDeleteNestedField(c, innerIndex)"
-                    title="Remove"
-                  >&times;</button>
-                  <app-handsontable></app-handsontable>
-                </div>
-              </ng-container>
-            </ng-container>
+            <div *ngIf="innerField.type === 'handsontable'" class="relative border rounded-md overflow-hidden">
+              <button
+                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                (click)="onDeleteNestedField(c, innerIndex)"
+              >
+                &times;
+              </button>
+
+              <app-handsontable
+                [hotId]="innerField.id"
+                [saveVersion]="saveVersion"
+                (submitPayload)="emitSpreadsheetSubmit(c, innerField.id, $event)"
+              ></app-handsontable>
+            </div>
           </div>
         </ng-template>
       </div>

@@ -1,5 +1,6 @@
 <div class="tabs-wrapper space-y-4">
-  <!-- Tabs Header -->
+
+  <!-- ---------- TAB HEADERS ---------- -->
   <div class="tabs-header flex flex-wrap items-center gap-2">
     <div
       class="tab-pill flex items-center gap-2"
@@ -28,48 +29,70 @@
       </button>
     </div>
 
-    <button class="btn btn-outline-primary btn-xs" type="button" (click)="onAddTab()">+ Add Tab</button>
+    <button class="btn btn-outline-primary btn-xs" type="button" (click)="onAddTab()">
+      + Add Tab
+    </button>
   </div>
 
-  <!-- Active Tab Body -->
-  <ng-container *ngIf="getActiveTab() as activeTab">
+  <!-- ---------- TAB CONTENT ---------- -->
+  <ng-container *ngFor="let tab of tabsField.tabs; let t = index">
     <div
+      [hidden]="tabsField.activeTabIndex !== t"
       class="tab-dropzone border border-defaultborder rounded p-3 bg-bodybg2 dark:bg-bodybg"
       cdkDropList
-      [id]="getTabListId(activeTab)"
-      [cdkDropListData]="activeTab.fields"
-      [cdkDropListConnectedTo]="connectedTargetsFor(getTabListId(activeTab))"
-      (cdkDropListDropped)="onDropOnTab(getActiveTabIndex(), $event)"
-        [cdkDropListEnterPredicate]="tabEnterPredicate" 
-
+      [id]="getTabListId(tab)"
+      [cdkDropListData]="tab.fields"
+      [cdkDropListConnectedTo]="connectedTargetsFor(getTabListId(tab))"
+      (cdkDropListDropped)="onDropOnTab(t, $event)"
+      [cdkDropListEnterPredicate]="tabEnterPredicate"
     >
-      <div *ngIf="!activeTab.fields.length" class="text-xs italic text-mutedtextcolor py-4 text-center">
-        Drop fields for {{ activeTab.title }} here
+
+      <!-- Empty state -->
+      <div
+        *ngIf="!tab.fields.length"
+        class="text-xs italic text-mutedtextcolor py-4 text-center"
+      >
+        Drop fields for {{ tab.title }} here
       </div>
 
-    
+      <!-- Add Spreadsheet Button -->
+      <div class="flex justify-center mb-2">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-xs"
+          (click)="onAddSpreadsheet(t)"
+          title="Add Spreadsheet"
+        >
+          📊 Add Spreadsheet
+        </button>
+      </div>
 
-      <!-- Render inner fields inside the active tab -->
+      <!-- Render inner fields -->
       <div
-        *ngFor="let innerField of activeTab.fields; let innerIndex = index"
+        *ngFor="let innerField of tab.fields; let innerIndex = index"
         class="tab-inner-field border border-defaultborder rounded-md p-2 mb-2 bg-white dark:bg-bodybg shadow-sm"
         cdkDrag
       >
+
+        <!-- Toolbar -->
         <div class="inner-field-toolbar flex items-center justify-between mb-2">
           <span class="text-[11px] uppercase tracking-wide text-defaulttextcolor">
             {{ innerField.label }}
           </span>
+
           <button
             type="button"
             class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
-            (click)="onDeleteNestedField(getActiveTabIndex(), innerIndex)"
+            (click)="onDeleteNestedField(t, innerIndex)"
           >
             &times;
           </button>
         </div>
 
+        <!-- ---------- FIELD TYPES ---------- -->
         <ng-container [ngSwitch]="innerField.type">
-          <!-- Simple types -->
+
+          <!-- TEXT FIELD -->
           <ng-container *ngSwitchCase="'text'">
             <div class="flex items-center gap-3">
               <input [(ngModel)]="innerField.label" type="text" class="form-input w-40" placeholder="Label" />
@@ -78,6 +101,7 @@
             </div>
           </ng-container>
 
+          <!-- DROPDOWN -->
           <ng-container *ngSwitchCase="'dropdown'">
             <div class="flex items-center gap-3">
               <input [(ngModel)]="innerField.label" type="text" class="form-input w-40" placeholder="Label" />
@@ -87,6 +111,7 @@
             </div>
           </ng-container>
 
+          <!-- CHECKBOX -->
           <ng-container *ngSwitchCase="'checkbox'">
             <div class="flex items-center gap-3">
               <input [(ngModel)]="innerField.label" type="text" class="form-input w-40" placeholder="Label" />
@@ -97,10 +122,15 @@
             </div>
           </ng-container>
 
-          <!-- Spreadsheet -->
-          <app-handsontable *ngSwitchCase="'handsontable'"></app-handsontable>
+          <!-- SPREADSHEET -->
+          <app-handsontable
+            *ngSwitchCase="'handsontable'"
+            [hotId]="innerField.id"
+            [saveVersion]="saveVersion"
+            (submitPayload)="onSpreadsheetSubmit(t, innerField.id, $event)"
+          ></app-handsontable>
 
-          <!-- Columns (inside a tab) -->
+          <!-- COLUMNS -->
           <app-columns
             *ngSwitchCase="'columns'"
             [columnsField]="innerField"
@@ -110,8 +140,10 @@
             (deleteColumnField)="onNestedColumnsDelete(innerField, $event)"
             (addSpreadsheet)="onNestedColumnsAddSheet(innerField, $event)"
           ></app-columns>
+
         </ng-container>
       </div>
     </div>
   </ng-container>
+
 </div>
