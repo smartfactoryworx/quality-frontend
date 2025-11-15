@@ -123,11 +123,11 @@
 
           <!-- HANDSONTABLE -->
           <app-handsontable
-          *ngSwitchCase="'handsontable'"
-          [hotId]="innerField.id"
-          [saveVersion]="saveVersion"
-          (submitPayload)="onSpreadsheetSubmit(innerField.id, $event)"
-        ></app-handsontable>
+            *ngSwitchCase="'handsontable'"
+            [hotId]="innerField.id"
+            [saveVersion]="saveVersion"
+            (submitPayload)="onSpreadsheetSubmit(t, innerField.id, $event)"
+          ></app-handsontable>
 
 
         </ng-container>

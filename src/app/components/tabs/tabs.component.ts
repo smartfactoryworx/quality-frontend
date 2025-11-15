@@ -82,14 +82,14 @@ export class TabsComponent {
   }
 
   // 🔹 CRITICAL FIX: tabIndex comes from the tab `t`, not from activeTab
-  onSpreadsheetSubmit(fieldId: string, submission: { payload: any; version: number }) {
-  this.spreadsheetSubmit.emit({
-    fieldIndex: this.fieldIndex,
-    tabIndex: this.getActiveTabIndex(),
-    fieldId,
-    payload: submission.payload,
-    version: submission.version
-  });
-}
+  onSpreadsheetSubmit(tabIndex: number, fieldId: string, submission: { payload: any; version: number }) {
+    this.spreadsheetSubmit.emit({
+      fieldIndex: this.fieldIndex,
+      tabIndex,
+      fieldId,
+      payload: submission.payload,
+      version: submission.version
+    });
+  }
 
 }
