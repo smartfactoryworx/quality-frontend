@@ -1,21 +1,26 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { FormsModule } from '@angular/forms';
+import {
+  DragDropModule,
+  CdkDragDrop,
+} from '@angular/cdk/drag-drop';
 import { HandsontableComponent } from '../form-structure/handsontable/handsontable.component';
 
 @Component({
   selector: 'app-columns',
   standalone: true,
-  imports: [CommonModule, DragDropModule, HandsontableComponent],
+  imports: [CommonModule, FormsModule, DragDropModule, HandsontableComponent],
   templateUrl: './columns.component.html',
-  styleUrls: ['./columns.component.scss']
+  styleUrls: ['./columns.component.scss'],
 })
 export class ColumnsComponent {
-  @Input() columnsField!: any;
+  @Input() columnsField: any;
   @Input() fieldIndex!: number;
   @Input() connectedTargets: string[] = [];
   @Input() saveVersion = 0;
 
+  /* FIX: emit fieldIndex */
   @Output() dropOnColumn = new EventEmitter<{
     fieldIndex: number;
     columnIndex: number;
@@ -28,19 +33,33 @@ export class ColumnsComponent {
     nestedIndex: number;
   }>();
 
-  @Output() addSpreadsheet = new EventEmitter<{ fieldIndex: number; columnIndex: number }>();
-  @Output() spreadsheetSubmit = new EventEmitter<{ fieldIndex: number; columnIndex: number; fieldId: string; payload: any; version: number }>();
+  @Output() addSpreadsheet = new EventEmitter<{
+    fieldIndex: number;
+    columnIndex: number;
+  }>();
 
-  getColumnListId(column: any): string {
+  @Output() spreadsheetSubmit = new EventEmitter<{
+    fieldIndex: number;
+    columnIndex: number;
+    fieldId: string;
+    payload: any;
+    version: number;
+  }>();
+
+  getColumnListId(column: any) {
     return `col-${this.columnsField.id}-${column.id}`;
   }
 
-  getConnectedTargets(columnId: string): string[] {
-    return this.connectedTargets.filter((id) => id !== columnId);
+  connectedTargetsFor(id: string): string[] {
+    return this.connectedTargets.filter((x) => x !== id);
   }
 
   onDropOnColumn(columnIndex: number, event: CdkDragDrop<any[]>) {
-    this.dropOnColumn.emit({ fieldIndex: this.fieldIndex, columnIndex, event });
+    this.dropOnColumn.emit({
+      fieldIndex: this.fieldIndex,
+      columnIndex,
+      event
+    });
   }
 
   onDeleteNestedField(columnIndex: number, nestedIndex: number) {
@@ -51,17 +70,20 @@ export class ColumnsComponent {
     });
   }
 
-  onAddSpreadsheet(columnIndex: number): void {
-    this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, columnIndex });
+  onAddSpreadsheet(columnIndex: number) {
+    this.addSpreadsheet.emit({
+      fieldIndex: this.fieldIndex,
+      columnIndex
+    });
   }
 
-  onSpreadsheetSubmit(columnIndex: number, fieldId: string, submission: { payload: any; version: number }) {
+  emitSpreadsheetSubmit(columnIndex: number, fieldId: string, event: any) {
     this.spreadsheetSubmit.emit({
       fieldIndex: this.fieldIndex,
       columnIndex,
       fieldId,
-      payload: submission.payload,
-      version: submission.version
+      payload: event.payload,
+      version: event.version
     });
   }
 }

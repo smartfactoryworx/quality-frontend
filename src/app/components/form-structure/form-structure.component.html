@@ -1,117 +1,160 @@
 <div class="card border border-defaultborder rounded-xl shadow-sm bg-white dark:bg-bodybg p-4 builder-container">
+
+  <!-- HEADER -->
   <div class="card-header flex flex-wrap items-center justify-between gap-3 px-2 py-3 border-b border-defaultborder">
     <h2 class="text-base font-semibold text-defaulttextcolor">Form Builder</h2>
 
-    <div
-      class="flex gap-2 flex-wrap"
-      cdkDropList
-      id="fieldPalette"
-      [cdkDropListData]="availableFields"
-      [cdkDropListConnectedTo]="paletteConnections"
-    >
-      <div
-        *ngFor="let field of availableFields"
-        class="btn btn-outline-primary btn-sm select-none"
-        cdkDrag
-        [cdkDragData]="field"
-      >
+    <!-- PALETTE -->
+    <div class="flex gap-2 flex-wrap"
+         cdkDropList
+         id="fieldPalette"
+         [cdkDropListData]="availableFields"
+         [cdkDropListConnectedTo]="paletteConnections">
+
+      <div *ngFor="let field of availableFields"
+           class="btn btn-outline-primary btn-sm select-none"
+           cdkDrag
+           [cdkDragData]="field">
         {{ field.label }}
       </div>
     </div>
 
     <button class="btn btn-outline-danger btn-sm" type="button" (click)="clearCanvas()">Clear Canvas</button>
     <button class="btn btn-outline-danger btn-sm" type="button" (click)="save()">Save</button>
-
   </div>
 
+  <!-- CANVAS -->
   <div class="card-body p-4">
-    <div
-      class="canvas border border-defaultborder rounded-lg p-4 bg-bodybg2 dark:bg-bodybg"
-      cdkDropList
-      id="canvasZone"
-      [cdkDropListData]="droppedFields"
-      [cdkDropListConnectedTo]="canvasConnections"
-      (cdkDropListDropped)="onDrop($event)"
-    >
+    <div class="canvas border border-defaultborder rounded-lg p-4 bg-bodybg2 dark:bg-bodybg"
+         cdkDropList id="canvasZone"
+         [cdkDropListData]="droppedFields"
+         [cdkDropListConnectedTo]="canvasConnections"
+         (cdkDropListDropped)="onDrop($event)"
+         [cdkDropListEnterPredicate]="canvasEnterPredicate">
+
       <div *ngIf="!droppedFields.length" class="italic text-mutedtextcolor">
         No fields added yet. Click a field type above to add one.
       </div>
 
-      <div
-        *ngFor="let field of droppedFields; let i = index"
-        class="canvas-field relative mb-4 border border-defaultborder rounded-md p-3 bg-gray-50 dark:bg-bodybg2 shadow-sm"
-        cdkDrag
-      >
-        <div class="field-toolbar flex items-center justify-between mb-3">
-          <span class="text-[11px] uppercase tracking-wide text-defaulttextcolor">{{ field.label }}</span>
-          <button
-            type="button"
-            class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
-            (click)="deleteField(i)"
-          >&times;</button>
+      <!-- EACH FIELD -->
+      <div *ngFor="let field of droppedFields; let i = index"
+           class="canvas-field relative mb-2 border border-defaultborder rounded-md p-2 bg-gray-50 dark:bg-bodybg2 shadow-sm"
+           cdkDrag>
+
+        <!-- Top Toolbar -->
+        <div class="field-toolbar flex items-center justify-between mb-1">
+          <span *ngIf="field.type === 'text' || field.type === 'dropdown' || field.type === 'checkbox'"
+                class="text-[11px] uppercase tracking-wide text-defaulttextcolor"></span>
+
+          <button type="button"
+                  class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
+                  (click)="deleteField(i)">
+            &times;
+          </button>
         </div>
 
-        <ng-container [ngSwitch]="field.type">
-          <ng-container *ngSwitchCase="'text'">
-            <input type="text" placeholder="Enter text" class="form-input w-full" />
-          </ng-container>
+        <!-- SIMPLE FIELDS -->
+        <div *ngIf="field.type === 'text' || field.type === 'dropdown' || field.type === 'checkbox'; else complexBlock"
+             class="flex items-center gap-3">
 
-          <ng-container *ngSwitchCase="'dropdown'">
-            <select class="form-select w-full">
-              <option *ngFor="let opt of field.options">{{ opt }}</option>
-            </select>
-          </ng-container>
+          <!-- Editable Label -->
+          <input [(ngModel)]="field.label"
+                 type="text"
+                 class="form-input w-40"
+                 placeholder="Label" />
 
-          <ng-container *ngSwitchCase="'checkbox'">
-            <div class="flex items-center gap-2">
-              <input type="checkbox" class="form-checkbox" />
-              <span>Check me</span>
-            </div>
-          </ng-container>
+          <!-- Simple Types -->
+          <ng-container [ngSwitch]="field.type">
 
-          <!-- 📊 Handsontable Grid -->
-          <div *ngSwitchCase="'handsontable'" class="border rounded-md overflow-hidden">
-            <app-handsontable
-              [hotId]="field.id"
-              [saveVersion]="saveVersion"
-              (submitPayload)="onRootSpreadsheetSubmit(field.id, $event)">
-            </app-handsontable>
+            <!-- TEXT -->
+            <ng-container *ngSwitchCase="'text'">
+              <input [(ngModel)]="field.value" type="text" class="form-input flex-1" placeholder="Enter text" />
+              <input [(ngModel)]="field.key" type="text" class="form-input w-48" placeholder="Key" />
+            </ng-container>
+
+            <!-- DROPDOWN -->
+            <ng-container *ngSwitchCase="'dropdown'">
+              <select [(ngModel)]="field.value" class="form-select flex-1">
+                <option *ngFor="let opt of (field.options || [])" [ngValue]="opt">
+                  {{ opt }}
+                </option>
+              </select>
+            </ng-container>
+
+            <!-- CHECKBOX -->
+            <ng-container *ngSwitchCase="'checkbox'">
+              <label class="inline-flex items-center gap-2">
+                <input [(ngModel)]="field.value" type="checkbox" class="form-checkbox" />
+                <span class="text-sm text-defaulttextcolor">Checked</span>
+              </label>
+            </ng-container>
+
+          </ng-container>
+        </div>
+
+        <!-- COMPLEX FIELDS BLOCK -->
+        <ng-template #complexBlock>
+          <div class="w-full">
+
+            <ng-container [ngSwitch]="field.type">
+
+              <!-- ROOT SPREADSHEET -->
+              <ng-container *ngSwitchCase="'handsontable'">
+                <div class="border rounded-md overflow-hidden">
+                  <app-handsontable
+                    [hotId]="field.id"
+                    [saveVersion]="saveVersion"
+                    (submitPayload)="onRootSpreadsheetSubmit(field.id, $event)">
+                  </app-handsontable>
+                </div>
+              </ng-container>
+
+              <!-- TABS -->
+              <ng-container *ngSwitchCase="'tabs'">
+                <ng-container *ngIf="asTabs(field) as tabsField">
+                  <app-tabs
+                    [tabsField]="tabsField"
+                    [fieldIndex]="i"
+                    [connectedTargets]="collectDropListIds()"
+                    [saveVersion]="saveVersion"
+
+                    (addTab)="onAddTab($event)"
+                    (deleteTab)="onDeleteTab($event)"
+                    (updateTabTitle)="onUpdateTabTitle($event)"
+                    (setActiveTab)="onSetActiveTab($event)"
+
+                    (deleteNestedField)="onDeleteNestedField($event)"
+                    (dropOnTab)="dropOnTab($event)"
+
+                    (addSpreadsheet)="onAddSpreadsheetToTab($event)"
+                    (spreadsheetSubmit)="onTabSpreadsheetSubmit($event)">
+                  </app-tabs>
+                </ng-container>
+              </ng-container>
+
+              <!-- COLUMNS -->
+              <ng-container *ngSwitchCase="'columns'">
+                <ng-container *ngIf="asColumns(field) as columnsField">
+                  <app-columns
+                    [columnsField]="columnsField"
+                    [fieldIndex]="i"
+                    [connectedTargets]="collectDropListIds()"
+                    [saveVersion]="saveVersion"
+
+                    (dropOnColumn)="dropOnColumn($event)"
+                    (deleteColumnField)="onDeleteColumnField($event)"
+
+                    (addSpreadsheet)="onAddSpreadsheetToColumn($event)"
+                    (spreadsheetSubmit)="onColumnSpreadsheetSubmit($event)">
+                  </app-columns>
+                </ng-container>
+              </ng-container>
+
+            </ng-container>
+
           </div>
+        </ng-template>
 
-          <ng-container *ngSwitchCase="'tabs'">
-            <ng-container *ngIf="asTabs(field) as tabsField">
-              <app-tabs
-                [tabsField]="tabsField"
-                [fieldIndex]="i"
-                [connectedTargets]="collectDropListIds()"
-                [saveVersion]="saveVersion"
-                (addTab)="onAddTab($event)"
-                (deleteTab)="onDeleteTab($event)"
-                (updateTabTitle)="onUpdateTabTitle($event)"
-                (setActiveTab)="onSetActiveTab($event)"
-                (deleteNestedField)="onDeleteNestedField($event)"
-                (dropOnTab)="dropOnTab($event)"
-                (addSpreadsheet)="onAddSpreadsheetToTab($event)"
-                (spreadsheetSubmit)="onTabSpreadsheetSubmit($event)"
-              ></app-tabs>
-            </ng-container>
-          </ng-container>
-
-          <ng-container *ngSwitchCase="'columns'">
-            <ng-container *ngIf="asColumns(field) as columnsField">
-              <app-columns
-                [columnsField]="columnsField"
-                [fieldIndex]="i"
-                [connectedTargets]="collectDropListIds()"
-                [saveVersion]="saveVersion"
-                (dropOnColumn)="dropOnColumn($event)"
-                (deleteColumnField)="onDeleteColumnField($event)"
-                (addSpreadsheet)="onAddSpreadsheetToColumn($event)"
-                (spreadsheetSubmit)="onColumnSpreadsheetSubmit($event)"
-              ></app-columns>
-            </ng-container>
-          </ng-container>
-        </ng-container>
       </div>
     </div>
   </div>
