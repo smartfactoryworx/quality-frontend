@@ -15,6 +15,7 @@ export class TabsComponent {
   @Input() tabsField!: any;
   @Input() fieldIndex!: number;
   @Input() connectedTargets: string[] = [];
+  @Input() saveVersion = 0;
 
   @Output() addTab = new EventEmitter<number>();
   @Output() deleteTab = new EventEmitter<{ fieldIndex: number; tabIndex: number }>();
@@ -23,6 +24,7 @@ export class TabsComponent {
   @Output() deleteNestedField = new EventEmitter<{ fieldIndex: number; tabIndex: number; nestedIndex: number }>();
   @Output() dropOnTab = new EventEmitter<{ fieldIndex: number; tabIndex: number; event: CdkDragDrop<any[]> }>();
   @Output() addSpreadsheet = new EventEmitter<{ fieldIndex: number; tabIndex: number }>();
+  @Output() spreadsheetSubmit = new EventEmitter<{ fieldIndex: number; tabIndex: number; fieldId: string; payload: any; version: number }>();
 
   getTabListId(tab: any): string {
     return `tab-${this.tabsField.id}-${tab.id}`;
@@ -40,7 +42,10 @@ export class TabsComponent {
     if (this.tabsField.activeTabIndex == null) {
       this.tabsField.activeTabIndex = 0;
     }
-    return Math.min(Math.max(this.tabsField.activeTabIndex, 0), this.tabsField.tabs.length - 1);
+    return Math.min(
+      Math.max(this.tabsField.activeTabIndex, 0),
+      this.tabsField.tabs.length - 1
+    );
   }
 
   onAddTab(): void {
@@ -71,8 +76,20 @@ export class TabsComponent {
     return this.connectedTargets.filter((id) => id !== tabId);
   }
 
-  onAddSpreadsheet(): void {
-    this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, tabIndex: this.getActiveTabIndex() });
+  // 🔹 NOW tabIndex is passed from template
+  onAddSpreadsheet(tabIndex: number): void {
+    this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, tabIndex });
   }
+
+  // 🔹 CRITICAL FIX: tabIndex comes from the tab `t`, not from activeTab
+  onSpreadsheetSubmit(fieldId: string, submission: { payload: any; version: number }) {
+  this.spreadsheetSubmit.emit({
+    fieldIndex: this.fieldIndex,
+    tabIndex: this.getActiveTabIndex(),
+    fieldId,
+    payload: submission.payload,
+    version: submission.version
+  });
 }
 
+}

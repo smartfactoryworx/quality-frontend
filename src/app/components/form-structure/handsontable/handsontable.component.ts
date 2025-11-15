@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild, inject, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -21,9 +21,23 @@ import { PLATFORM_ID } from '@angular/core';
   providers: [HandsontableService],
   templateUrl: './handsontable.component.html'
 })
-export class HandsontableComponent {
+export class HandsontableComponent implements OnChanges {
+  private static nextHotId = 0;
   private svc = inject(HandsontableService);
   isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  @Output() submitPayload = new EventEmitter<{ payload: any; version: number }>();
+  @Input() saveVersion = 0;
+  private resolvedHotId = `handsontable-grid-${HandsontableComponent.nextHotId++}`;
+  @Input()
+  set hotId(value: string | null | undefined) {
+    if (typeof value === 'string' && value.trim().length) {
+      this.resolvedHotId = value.trim();
+    }
+  }
+  get hotId(): string {
+    return this.resolvedHotId;
+  }
+
 
   // dropdown options
   EQUIP_URL = 'https://coke.smartfactoryworx.tech/api/manual/equipmentNew?type=all&line_id=65ded937618e06863492f3bc';
@@ -49,6 +63,15 @@ export class HandsontableComponent {
     this.svc.fetchDropdownOptions(this.EQUIP_URL, this.STATUS_URL).subscribe((m) => {
       this.opts = m;
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if ('saveVersion' in changes) {
+      const change = changes['saveVersion'];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        this.submitGridFromParent();
+      }
+    }
   }
 
   // toolbar → grid bridges
@@ -82,6 +105,14 @@ export class HandsontableComponent {
     case 'dummy':             this.grid.loadDummyData(); break;
   }
 }
+
+  onGridSubmitted(payload:any) {
+    this.submitPayload.emit({ payload, version: this.saveVersion });
+  }
+
+  submitGridFromParent() {
+    this.grid?.submit();
+  }
 
   // role modal
   onConfirmRole(roles: string[]) {

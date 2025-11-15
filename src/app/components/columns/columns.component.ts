@@ -14,6 +14,7 @@ export class ColumnsComponent {
   @Input() columnsField!: any;
   @Input() fieldIndex!: number;
   @Input() connectedTargets: string[] = [];
+  @Input() saveVersion = 0;
 
   @Output() dropOnColumn = new EventEmitter<{
     fieldIndex: number;
@@ -28,6 +29,7 @@ export class ColumnsComponent {
   }>();
 
   @Output() addSpreadsheet = new EventEmitter<{ fieldIndex: number; columnIndex: number }>();
+  @Output() spreadsheetSubmit = new EventEmitter<{ fieldIndex: number; columnIndex: number; fieldId: string; payload: any; version: number }>();
 
   getColumnListId(column: any): string {
     return `col-${this.columnsField.id}-${column.id}`;
@@ -51,5 +53,15 @@ export class ColumnsComponent {
 
   onAddSpreadsheet(columnIndex: number): void {
     this.addSpreadsheet.emit({ fieldIndex: this.fieldIndex, columnIndex });
+  }
+
+  onSpreadsheetSubmit(columnIndex: number, fieldId: string, submission: { payload: any; version: number }) {
+    this.spreadsheetSubmit.emit({
+      fieldIndex: this.fieldIndex,
+      columnIndex,
+      fieldId,
+      payload: submission.payload,
+      version: submission.version
+    });
   }
 }

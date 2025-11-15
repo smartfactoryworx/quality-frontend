@@ -56,7 +56,12 @@
             <input type="checkbox" class="form-checkbox" />
             <span>Check me</span>
           </div>
-          <app-handsontable *ngSwitchCase="'handsontable'"></app-handsontable>
+          <app-handsontable
+            *ngSwitchCase="'handsontable'"
+            [hotId]="innerField.id"
+            [saveVersion]="saveVersion"
+            (submitPayload)="onSpreadsheetSubmit(c, innerField.id, $event)">
+          </app-handsontable>
         </ng-container>
       </div>
     </div>

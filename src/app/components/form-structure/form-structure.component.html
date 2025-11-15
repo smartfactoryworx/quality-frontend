@@ -20,6 +20,8 @@
     </div>
 
     <button class="btn btn-outline-danger btn-sm" type="button" (click)="clearCanvas()">Clear Canvas</button>
+    <button class="btn btn-outline-danger btn-sm" type="button" (click)="save()">Save</button>
+
   </div>
 
   <div class="card-body p-4">
@@ -67,9 +69,14 @@
             </div>
           </ng-container>
 
-          <ng-container *ngSwitchCase="'handsontable'">
-            <app-handsontable></app-handsontable>
-          </ng-container>
+          <!-- 📊 Handsontable Grid -->
+          <div *ngSwitchCase="'handsontable'" class="border rounded-md overflow-hidden">
+            <app-handsontable
+              [hotId]="field.id"
+              [saveVersion]="saveVersion"
+              (submitPayload)="onRootSpreadsheetSubmit(field.id, $event)">
+            </app-handsontable>
+          </div>
 
           <ng-container *ngSwitchCase="'tabs'">
             <ng-container *ngIf="asTabs(field) as tabsField">
@@ -77,6 +84,7 @@
                 [tabsField]="tabsField"
                 [fieldIndex]="i"
                 [connectedTargets]="collectDropListIds()"
+                [saveVersion]="saveVersion"
                 (addTab)="onAddTab($event)"
                 (deleteTab)="onDeleteTab($event)"
                 (updateTabTitle)="onUpdateTabTitle($event)"
@@ -84,6 +92,7 @@
                 (deleteNestedField)="onDeleteNestedField($event)"
                 (dropOnTab)="dropOnTab($event)"
                 (addSpreadsheet)="onAddSpreadsheetToTab($event)"
+                (spreadsheetSubmit)="onTabSpreadsheetSubmit($event)"
               ></app-tabs>
             </ng-container>
           </ng-container>
@@ -94,9 +103,11 @@
                 [columnsField]="columnsField"
                 [fieldIndex]="i"
                 [connectedTargets]="collectDropListIds()"
+                [saveVersion]="saveVersion"
                 (dropOnColumn)="dropOnColumn($event)"
                 (deleteColumnField)="onDeleteColumnField($event)"
                 (addSpreadsheet)="onAddSpreadsheetToColumn($event)"
+                (spreadsheetSubmit)="onColumnSpreadsheetSubmit($event)"
               ></app-columns>
             </ng-container>
           </ng-container>

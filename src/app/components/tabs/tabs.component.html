@@ -1,4 +1,6 @@
 <div class="tabs-wrapper space-y-4">
+
+  <!-- ---------- TAB HEADERS ---------- -->
   <div class="tabs-header flex flex-wrap items-center gap-2">
     <div
       class="tab-pill flex items-center gap-2"
@@ -12,6 +14,7 @@
       >
         {{ tab.title }}
       </button>
+
       <input
         *ngIf="tabsField.activeTabIndex === t"
         class="tab-pill__input form-input"
@@ -19,6 +22,7 @@
         (click)="$event.stopPropagation()"
         (input)="onUpdateTabTitle(t, $any($event.target).value)"
       />
+
       <button
         type="button"
         class="btn btn-outline-danger btn-xxs"
@@ -28,27 +32,42 @@
         ×
       </button>
     </div>
-    <button class="btn btn-outline-primary btn-xs" type="button" (click)="onAddTab()">+ Add Tab</button>
+
+    <button
+      class="btn btn-outline-primary btn-xs"
+      type="button"
+      (click)="onAddTab()"
+    >
+      + Add Tab
+    </button>
   </div>
 
-  <ng-container *ngIf="getActiveTab() as activeTab">
+  <!-- ---------- TAB CONTENT ---------- -->
+  <ng-container *ngFor="let tab of tabsField.tabs; let t = index">
+
+    <!-- Use [hidden] so the tab contents are not destroyed -->
     <div
+      [hidden]="tabsField.activeTabIndex !== t"
       class="tab-dropzone border border-defaultborder rounded p-3 bg-bodybg2 dark:bg-bodybg"
       cdkDropList
-      [id]="getTabListId(activeTab)"
-      [cdkDropListData]="activeTab.fields"
-      [cdkDropListConnectedTo]="getConnectedTargets(getTabListId(activeTab))"
-      (cdkDropListDropped)="onDropOnTab(getActiveTabIndex(), $event)"
+      [id]="getTabListId(tab)"
+      [cdkDropListData]="tab.fields"
+      [cdkDropListConnectedTo]="getConnectedTargets(getTabListId(tab))"
+      (cdkDropListDropped)="onDropOnTab(t, $event)"
     >
-      <div *ngIf="!activeTab.fields.length" class="text-xs italic text-mutedtextcolor py-4 text-center">
-        Drop fields for {{ activeTab.title }} here
+
+      <div
+        *ngIf="!tab.fields.length"
+        class="text-xs italic text-mutedtextcolor py-4 text-center"
+      >
+        Drop fields for {{ tab.title }} here
       </div>
 
       <div class="flex justify-center mb-2">
         <button
           type="button"
           class="btn btn-outline-primary btn-xs"
-          (click)="onAddSpreadsheet()"
+          (click)="onAddSpreadsheet(t)"
           title="Add Spreadsheet"
         >
           📊 Add Spreadsheet
@@ -56,34 +75,65 @@
       </div>
 
       <div
-        *ngFor="let innerField of activeTab.fields; let innerIndex = index"
+        *ngFor="let innerField of tab.fields; let innerIndex = index"
         class="tab-inner-field border border-defaultborder rounded-md p-2 mb-2 bg-white dark:bg-bodybg shadow-sm"
         cdkDrag
       >
+
         <div class="inner-field-toolbar flex items-center justify-between mb-2">
           <span class="text-[11px] uppercase tracking-wide text-defaulttextcolor">
             {{ innerField.label }}
           </span>
+
           <button
             type="button"
             class="text-xs text-white bg-red-500 hover:bg-red-600 rounded-full w-5 h-5 flex items-center justify-center"
-            (click)="onDeleteNestedField(getActiveTabIndex(), innerIndex)"
-          >&times;</button>
+            (click)="onDeleteNestedField(t, innerIndex)"
+          >
+            &times;
+          </button>
         </div>
 
+        <!-- Field Types -->
         <ng-container [ngSwitch]="innerField.type">
-          <input *ngSwitchCase="'text'" type="text" placeholder="Enter text" class="form-input w-full" />
-          <select *ngSwitchCase="'dropdown'" class="form-select w-full">
-            <option *ngFor="let opt of innerField.options">{{ opt }}</option>
+
+          <input
+            *ngSwitchCase="'text'"
+            type="text"
+            placeholder="Enter text"
+            class="form-input w-full"
+          />
+
+          <select
+            *ngSwitchCase="'dropdown'"
+            class="form-select w-full"
+          >
+            <option *ngFor="let opt of innerField.options">
+              {{ opt }}
+            </option>
           </select>
-          <div *ngSwitchCase="'checkbox'" class="flex items-center gap-2">
+
+          <div
+            *ngSwitchCase="'checkbox'"
+            class="flex items-center gap-2"
+          >
             <input type="checkbox" class="form-checkbox" />
             <span>Check me</span>
           </div>
-          <app-handsontable *ngSwitchCase="'handsontable'"></app-handsontable>
+
+          <!-- HANDSONTABLE -->
+          <app-handsontable
+          *ngSwitchCase="'handsontable'"
+          [hotId]="innerField.id"
+          [saveVersion]="saveVersion"
+          (submitPayload)="onSpreadsheetSubmit(innerField.id, $event)"
+        ></app-handsontable>
+
+
         </ng-container>
+
       </div>
     </div>
   </ng-container>
-</div>
 
+</div>
